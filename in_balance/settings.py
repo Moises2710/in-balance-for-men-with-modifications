@@ -37,7 +37,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG') 
+# DEBUG = os.environ.get('DEBUG') 
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
 
@@ -389,3 +390,17 @@ EMAIL_CONNECTION_TIMEOUT = int(os.environ.get('EMAIL_CONNECTION_TIMEOUT', '5'))
 # Configuración adicional para evitar problemas
 EMAIL_SUBJECT_PREFIX = '[In Balance] '
 SERVER_EMAIL = EMAIL_HOST_USER if 'EMAIL_HOST_USER' in locals() else DEFAULT_FROM_EMAIL
+
+# =====================================================================
+# CONFIGURACIONES DE COMPATIBILIDAD PARA EL ENTORNO DE DESARROLLO
+# =====================================================================
+# Si el backend busca un atributo literal llamado 'clave_de_entorno' 
+# o variables relacionadas, las definimos como seguras para desarrollo.
+clave_de_entorno = os.environ.get('clave_de_entorno', 'desarrollo_local')
+CLAVE_DE_ENTORNO = os.environ.get('CLAVE_DE_ENTORNO', 'desarrollo_local')
+
+# Asegurar que el objeto settings no lance AttributeError en las vistas
+def __getattr__(name):
+    if name in ['clave_de_entorno', 'CLAVE_DE_ENTORNO']:
+        return 'desarrollo_local'
+    raise AttributeError(DeltaNameError)

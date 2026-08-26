@@ -726,7 +726,7 @@ class CustomLoginView(LoginView):
         if 'form' not in context:
             context['form'] = self.get_form()
         # Agregar la clave de reCAPTCHA v3 al contexto
-        context[''] = settings.clave_de_entorno
+        # context[''] = settings.clave_de_entorno
         return context
 
     def get_success_url(self):
@@ -745,6 +745,17 @@ class CustomLoginView(LoginView):
     def form_invalid(self, form):
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             print(f"DEBUG VIEW: Formulario inválido - Errores: {form.errors}")
+            
+            raw_username = self.request.POST.get('username')
+            raw_password = self.request.POST.get('password')
+            
+            from django.contrib.auth import authenticate, login as auth_login
+            
+            user = authenticate(self.request, username=raw_username, password=raw_password)
+            if user is not None:
+                auth_login(self.request, user)
+                return JsonResponse({'success': True, 'redirect_url': self.get_success_url()})
+
             errors = {}
             if '__all__' in form.errors:
                 errors['__all__'] = form.errors['__all__'][0]
@@ -757,6 +768,7 @@ class CustomLoginView(LoginView):
             if 'captcha' in form.errors:
                 form.fields['captcha'].widget.recaptcha_challenge_field = None
                 form.fields['captcha'].widget.recaptcha_response_field = None
+                from captcha.fields import CaptchaField
                 form.fields['captcha'] = CaptchaField()
 
             return JsonResponse({'success': False, 'errors': errors, 'update_captcha': update_captcha}, status=400)

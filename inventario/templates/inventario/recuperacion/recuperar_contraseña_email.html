@@ -1,0 +1,12 @@
+{% autoescape off %}
+Hola,
+
+Has solicitado recuperar tu contraseña. Por favor, haz clic en el siguiente enlace para restablecerla:
+
+{{ protocol }}://{{ domain }}{% url 'recuperar_contraseña_confirmar' uidb64=uid token=token %}
+
+Si no solicitaste este cambio, ignora este correo.
+
+Gracias,
+El equipo de In Balance
+{% endautoescape %}

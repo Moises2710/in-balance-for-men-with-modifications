@@ -1,0 +1,376 @@
+{% extends 'inventario/base.html' %} {% load static %} {% block title %}Detalle
+de Venta{% endblock %} {% block custom_css %}
+<link href="{% static 'assets/css/nuevos/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet" />
+{% endblock %} {% block pagina_css %}
+<style>
+  #detalle-venta td:first-child {
+    border-right: 1px solid #dee2e6;
+  }
+
+  .table-productos {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .table-productos thead {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1;
+  }
+
+  .pago-item {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #f8f9fa;
+  }
+
+  .pago-item:hover {
+    background-color: #e9ecef;
+  }
+
+  .estado-badge {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="col-12 col-md-8">
+  <div class="card">
+    <div
+      class="card-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+      <div class="header-title mb-2 mb-md-0">
+        <h4 class="card-title m-0">Detalles de la Venta #{{ venta.id }}</h4>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'venta_list' %}" class="btn btn-primary">Volver</a>
+        <a href="{% url 'devolucion_create' venta.id %}" class="btn btn-primary">Crear Devolución</a>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="row p-3">
+        <div class="col-md-6">
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Fecha:</strong>
+            <span>{{ venta.fecha|date:"d/m/Y H:i" }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Cliente:</strong>
+            <span>
+              {% if venta.cliente %}
+              {% if venta.cliente.apellido %}
+              {{ venta.cliente.nombre }} {{ venta.cliente.apellido }}
+              {% else %}
+              {{ venta.cliente.nombre }}
+              {% endif %}
+              {% else %}
+              <span class="text-muted">No registrado</span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Vendedor:</strong>
+            <span>
+              {% if venta.user %}
+              {% if venta.user.first_name or venta.user.last_name %}
+              {{ venta.user.first_name }} {{ venta.user.last_name }}
+              {% else %}
+              {{ venta.user.username }}
+              {% endif %}
+              {% else %}
+              <span class="text-muted">No registrado</span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Total Devuelto:</strong>
+            <span class="fw-bold text-warning">${{ venta.get_total_devoluciones|floatformat:2 }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Total Reembolsado:</strong>
+            <span class="fw-bold text-info">${{ venta.get_total_reembolsado|floatformat:2 }}</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Subtotal:</strong>
+            <span>${{ venta.subtotal|floatformat:2 }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Descuento:</strong>
+            <span>${{ venta.descuento|floatformat:2 }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Comisión:</strong>
+            <span>${{ venta.comision|floatformat:2 }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Total:</strong>
+            <span class="fw-bold">${{ venta.total|floatformat:2 }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Total Ajustado:</strong>
+            <span class="fw-bold">${{ venta.total_ajustado|floatformat:2 }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="border-top p-3">
+        <div class="row">
+          <div class="col-md-6">
+            <strong>Estado de Pago:</strong>
+            {% if venta.cancelada %}
+            <span class="badge bg-secondary estado-badge ms-2">Cancelada</span>
+            {% elif venta.pagado %}
+            <span class="badge bg-success estado-badge ms-2">Pagada</span>
+            {% else %}
+            <span class="badge bg-danger estado-badge ms-2">No pagada</span>
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <strong>Estado de Entrega:</strong>
+            {% if venta.entrega %}
+            <span class="badge bg-success estado-badge ms-2">Entregado</span>
+            {% else %}
+            <span class="badge bg-warning estado-badge ms-2">Pendiente de Entrega</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Productos -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Productos de la Venta</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive table-productos">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Código</th>
+              <th>Tipo</th>
+              <th>Marca</th>
+              <th>Talla</th>
+              <th>Cantidad</th>
+              <th>Precio Unit.</th>
+              <th>Precio Unit. Final</th>
+              <th>Subtotal</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for detalle in detalles_venta %}
+            <tr>
+              <td><strong>{{ detalle.producto.codigo }}</strong></td>
+              <td>{{ detalle.producto.tipo.nombre|default:"-" }}</td>
+              <td>{{ detalle.producto.marca.nombre|default:"-" }}</td>
+              <td>{{ detalle.producto.talla.nombre|default:"-" }}</td>
+              <td>{{ detalle.cantidad }}</td>
+              <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
+              <td>${{ detalle.precio_unitario_final|floatformat:2 }}</td>
+              <td>
+                <strong>${{ detalle.subtotal_producto|floatformat:2 }}</strong>
+              </td>
+              <td>
+                <a href="{% url 'producto_detail' pk=detalle.producto.id %}" class="btn btn-sm btn-info"
+                  data-bs-toggle="tooltip" title="Ver detalles del producto">
+                  <i class="btn-inner">
+                    <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M15.1614 12.0531C15.1614 13.7991 13.7454 15.2141 11.9994 15.2141C10.2534 15.2141 8.83838 13.7991 8.83838 12.0531C8.83838 10.3061 10.2534 8.89111 11.9994 8.89111C13.7454 8.89111 15.1614 10.3061 15.1614 12.0531Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M11.998 19.355C15.806 19.355 19.289 16.617 21.25 12.053C19.289 7.48898 15.806 4.75098 11.998 4.75098H12.002C8.194 4.75098 4.711 7.48898 2.75 12.053C4.711 16.617 8.194 19.355 12.002 19.355H11.998Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                  </i>
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted">
+                No hay productos registrados en esta venta
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="col-12 col-md-4">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0">Pagos de la Venta</h5>
+      <button type="button" class="btn btn-primary" id="btnRegistrarPagos" data-venta-id="{{ venta.id }}"
+        data-venta-pagada="{% if venta.pagado %}true{% else %}false{% endif %}"
+        data-venta-cancelada="{% if venta.cancelada %}true{% else %}false{% endif %}">
+        <i class="btn-inner">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+        </i>
+        Nuevos Pagos
+      </button>
+    </div>
+    <div class="card-body">
+      {% if pagos %} {% for pago in pagos %}
+      <div class="pago-item">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="mb-0">Pago #{{ forloop.counter }}</h6>
+          <small class="text-muted">{{ pago.fecha|date:"d/m/Y H:i" }}</small>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <strong>Método:</strong><br />
+            <span class="text-primary">{{ pago.metodo.nombre }}</span>
+          </div>
+          <div class="col-6">
+            <strong>Monto dólares:</strong><br />
+            <span class="text-success">${{ pago.monto_usd|floatformat:2 }}</span>
+          </div>
+        </div>
+        {% if pago.tasa %}
+        <div class="row mt-2">
+          <div class="col-6">
+            <strong>Tasa de cambio:</strong><br />
+            <span class="text-info">{{ pago.tasa|floatformat:2 }}</span>
+          </div>
+          <div class="col-6">
+            <strong>Monto moneda:</strong><br />
+            <span class="text-info">{{ pago.monto_moneda|floatformat:2 }} ({{ pago.metodo.moneda}})</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <!-- Resumen de pagos -->
+      <div class="border-top pt-3 mt-3">
+        <div class="d-flex justify-content-between">
+          <strong>Total Pagado:</strong>
+          <strong class="text-success">${{ total_pagado|floatformat:2 }}</strong>
+        </div>
+        <div class="d-flex justify-content-between">
+          <strong>Faltante:</strong>
+          <strong class="text-danger">${{ faltante_por_pagar }}</strong>
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-4">
+        <p class="mb-0">No hay pagos registrados para esta venta</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal para ventas ya pagadas -->
+<div class="modal fade" id="modalVentaPagada" tabindex="-1" aria-labelledby="modalVentaPagadaLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalVentaPagadaLabel">Venta ya pagada</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="text mb-3" fill="currentColor" width="64" height="64"
+            viewBox="0 0 16 16">
+            <path
+              d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
+            <path
+              d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.55.55 0 0 1-1.1 0z" />
+          </svg>
+          <p class="mb-0">
+            Esta venta ya está <strong>completamente pagada</strong>.
+          </p>
+          <p class="text-muted small">
+            No se pueden agregar más pagos a ventas que ya han sido saldadas.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para ventas canceladas -->
+<div class="modal fade" id="modalVentaCancelada" tabindex="-1" aria-labelledby="modalVentaCanceladaLabel"
+  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalVentaCanceladaLabel">Venta cancelada</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="text mb-3" fill="currentColor" width="64" height="64"
+            viewBox="0 0 16 16">
+            <path
+              d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
+            <path
+              d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.55.55 0 0 1-1.1 0z" />
+          </svg>
+          <p class="mb-0">
+            Esta venta está <strong>cancelada</strong>.
+          </p>
+          <p class="text-muted small">
+            No se pueden agregar más pagos a ventas que han sido devueltas en su totalidad.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block custom_js %}
+<script src="{% static 'assets/js/plugins/select2.min.js' %}"></script>
+{% endblock %} {% block pagina_js %}
+<script>
+  // Función para validar estado de pago antes de registrar nuevo pago
+  function abrirModalRegistrarPago(ventaId, ventaPagada, ventaCancelada) {
+    if (ventaCancelada) {
+      // Si la venta está cancelada, mostrar modal de advertencia
+      $("#modalVentaCancelada").modal("show");
+    } else if (ventaPagada) {
+      // Si la venta ya está pagada, mostrar modal de advertencia
+      $("#modalVentaPagada").modal("show");
+    } else {
+      // Si la venta no está pagada ni cancelada, redirigir al formulario de pagos
+      window.location.href = `/venta/nuevo-pago/${ventaId}/`;
+    }
+  }
+
+  // Event listener para el botón de registrar pagos
+  document.addEventListener("DOMContentLoaded", function () {
+    const btnRegistrarPagos = document.getElementById("btnRegistrarPagos");
+    if (btnRegistrarPagos) {
+      btnRegistrarPagos.addEventListener("click", function () {
+        const ventaId = this.getAttribute("data-venta-id");
+        const ventaPagada = this.getAttribute("data-venta-pagada") === "true";
+        const ventaCancelada = this.getAttribute("data-venta-cancelada") === "true";
+        abrirModalRegistrarPago(ventaId, ventaPagada, ventaCancelada);
+      });
+    }
+  });
+</script>
+{% endblock %}

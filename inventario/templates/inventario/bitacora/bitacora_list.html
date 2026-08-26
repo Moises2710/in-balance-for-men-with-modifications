@@ -1,0 +1,326 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+
+{% block title %}Bitácora de Acciones - In Balance{% endblock %}
+
+{% block custom_css %}
+<link href="{% static 'assets/css/nuevos/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet" />
+<style>
+    .badge-tipo {
+        font-size: 0.75em;
+    }
+    .badge-entidad {
+        font-size: 0.8em;
+    }
+    .badge-crear { background-color: #28a745; }
+    .badge-editar { background-color: #ffc107; color: #000; }
+    .badge-eliminar { background-color: #dc3545; }
+    .badge-login { background-color: #17a2b8; }
+    .badge-logout { background-color: #6c757d; }
+    .badge-cambiar_password { background-color: #fd7e14; }
+    .badge-activar { background-color: #28a745; }
+    .badge-desactivar { background-color: #dc3545; }
+    .badge-suspender { background-color: #6c757d; }
+    .badge-marcar_pagado { background-color: #28a745; }
+    .badge-marcar_pendiente { background-color: #ffc107; color: #000; }
+    .badge-aprobar { background-color: #28a745; }
+    .badge-rechazar { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="col-sm-12">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between flex-wrap">
+            <div class="header-title">
+                <h4 class="card-title">Bitácora de Acciones</h4>
+                <p class="mb-0">Registro de todas las acciones realizadas en el sistema</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-icon" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#filtrosOffcanvas">
+                    <i class="btn-inner">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path d="M10.33 16.5928H4.0293" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round"></path>
+                            <path d="M13.1406 6.90042H19.4413" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M8.72629 6.84625C8.72629 5.5506 7.66813 4.5 6.36314 4.5C5.05816 4.5 4 5.5506 4 6.84625C4 8.14191 5.05816 9.19251 6.36314 9.19251C7.66813 9.19251 8.72629 8.14191 8.72629 6.84625Z"
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M20.0002 16.5538C20.0002 15.2581 18.9429 14.2075 17.6379 14.2075C16.3321 14.2075 15.2739 15.2581 15.2739 16.5538C15.2739 17.8494 16.3321 18.9 17.6379 18.9C18.9429 18.9 20.0002 17.8494 20.0002 16.5538Z"
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </i>
+                    Filtros
+                </button>
+            </div>
+        </div>
+
+        <!-- Offcanvas de Filtros -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="filtrosOffcanvas" aria-labelledby="filtrosOffcanvasLabel">
+            <div class="offcanvas-header border-bottom">
+                <h5 class="offcanvas-title fw-bold" id="filtrosOffcanvasLabel">
+                    Filtros de Bitácora
+                </h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-0">
+                <div class="p-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-body-tertiary border-0 py-3">
+                            <h6 class="mb-0 fw-bold">Filtrar Registros</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="usuario" class="form-label fw-medium">Usuario</label>
+                                <input type="text" class="form-control" id="usuario" 
+                                       placeholder="Buscar por nombre de usuario">
+                            </div>
+                            <div class="mb-3">
+                                <label for="tipo_accion" class="form-label fw-medium">Tipo de Acción</label>
+                                <select class="form-select" id="tipo_accion">
+                                    <option value="">Todos los tipos</option>
+                                    <option value="crear">Crear</option>
+                                    <option value="editar">Editar</option>
+                                    <option value="eliminar">Eliminar</option>
+                                    <option value="activar">Activar</option>
+                                    <option value="desactivar">Desactivar</option>
+                                    <option value="suspender">Suspender</option>
+                                    <option value="cambiar_password">Cambiar Password</option>
+                                    <option value="login">Login</option>
+                                    <option value="logout">Logout</option>
+                                    <option value="marcar_pagado">Marcar Pagado</option>
+                                    <option value="marcar_pendiente">Marcar Pendiente</option>
+                                    <option value="aprobar">Aprobar</option>
+                                    <option value="rechazar">Rechazar</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="entidad" class="form-label fw-medium">Entidad</label>
+                                <select class="form-select" id="entidad">
+                                    <option value="">Todas las entidades</option>
+                                    <option value="usuario">Usuario</option>
+                                    <option value="cliente">Cliente</option>
+                                    <option value="producto">Producto</option>
+                                    <option value="venta">Venta</option>
+                                    <option value="pago">Pago</option>
+                                    <option value="devolucion">Devolución</option>
+                                    <option value="gasto_administrativo">Gasto Administrativo</option>
+                                    <option value="comision">Comisión</option>
+                                    <option value="sistema">Sistema</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="fecha_desde" class="form-label fw-medium">Fecha Desde</label>
+                                <input type="date" class="form-control" id="fecha_desde">
+                            </div>
+                            <div class="mb-3">
+                                <label for="fecha_hasta" class="form-label fw-medium">Fecha Hasta</label>
+                                <input type="date" class="form-control" id="fecha_hasta">
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-primary" id="aplicar-filtros">
+                                    <i class="btn-inner">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </i>
+                                    Aplicar Filtros
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="limpiar-filtros">
+                                    Limpiar Filtros
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Tabla con DataTables -->
+            <div class="table-responsive">
+                <table id="my-table" class="table table-striped table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Fecha y Hora</th>
+                            <th>Usuario</th>
+                            <th>Tipo de Acción</th>
+                            <th>Entidad</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los datos se cargan dinámicamente via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block pagina_js %}
+<script>
+$(document).ready(function() {
+    // Inicializar Select2
+    $('.form-select').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        dropdownParent: $("#filtrosOffcanvas"),
+    });
+
+    // Objeto para almacenar los filtros actuales
+    let filters = {
+        usuario: '',
+        tipo_accion: '',
+        entidad: '',
+        fecha_desde: '',
+        fecha_hasta: ''
+    };
+
+    // Inicializar DataTable
+    var table = $('#my-table').DataTable({
+        "ajax": {
+            "url": "{% url 'bitacora_ajax' %}",
+            "type": "GET",
+            "cache": false,
+            "data": function(d) {
+                // Agregar todos los filtros al request
+                d.usuario = filters.usuario;
+                d.tipo_accion = filters.tipo_accion;
+                d.entidad = filters.entidad;
+                d.fecha_desde = filters.fecha_desde;
+                d.fecha_hasta = filters.fecha_hasta;
+            },
+            "dataSrc": function(json) {
+                return json.data || [];
+            }
+        },
+        "processing": true,
+        "serverSide": true,
+        "responsive": true,
+        "autoWidth": false,
+        "order": [[0, "desc"]], // Ordenar por fecha por defecto (más reciente primero)
+        "dom": '<"row align-items-center"<"col-md-6" l><"col-md-6" f>><"table-responsive my-3" rt><"row align-items-center" <"col-md-6" i><"col-md-6" p>><"clear">',
+        "language": {
+            "url": "{% static 'assets/js/nuevos/es-ES.json' %}"
+        },
+        "columns": [
+            {
+                "data": "timestamp",
+                "title": "Fecha y Hora",
+                "width": "15%",
+                "render": function(data, type, row) {
+                    return '<small class="text-muted"><i class="ri-time-line me-1"></i>' + data + '</small>';
+                }
+            },
+            {
+                "data": "usuario",
+                "title": "Usuario",
+                "width": "15%",
+                "render": function(data, type, row) {
+                    return '<strong>' + data + '</strong>';
+                }
+            },
+            {
+                "data": "tipo_accion",
+                "title": "Tipo de Acción",
+                "width": "15%",
+                "render": function(data, type, row) {
+                    return '<span class="badge badge-tipo badge-' + data + '">' + data.charAt(0).toUpperCase() + data.slice(1) + '</span>';
+                }
+            },
+            {
+                "data": "entidad",
+                "title": "Entidad",
+                "width": "10%",
+                "render": function(data, type, row) {
+                    return '<span class="badge badge-entidad bg-secondary">' + data.charAt(0).toUpperCase() + data.slice(1) + '</span>';
+                }
+            },
+            {
+                "data": "descripcion",
+                "title": "Descripción",
+                "width": "45%",
+                "render": function(data, type, row) {
+                    return data;
+                }
+            }
+        ],
+        "pageLength": 25,
+        "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]]
+    });
+
+    // Función para aplicar filtros
+    function aplicarFiltros() {
+        filters.usuario = $('#usuario').val();
+        filters.tipo_accion = $('#tipo_accion').val();
+        filters.entidad = $('#entidad').val();
+        filters.fecha_desde = $('#fecha_desde').val();
+        filters.fecha_hasta = $('#fecha_hasta').val();
+        
+        table.ajax.reload();
+        
+        // Cerrar offcanvas
+        var offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('filtrosOffcanvas'));
+        if (offcanvas) {
+            offcanvas.hide();
+        }
+    }
+
+    // Función para limpiar filtros
+    function limpiarFiltros() {
+        $('#usuario').val('');
+        $('#tipo_accion').val('').trigger('change');
+        $('#entidad').val('').trigger('change');
+        $('#fecha_desde').val('');
+        $('#fecha_hasta').val('');
+        
+        filters.usuario = '';
+        filters.tipo_accion = '';
+        filters.entidad = '';
+        filters.fecha_desde = '';
+        filters.fecha_hasta = '';
+        
+        table.ajax.reload();
+        
+        // Cerrar offcanvas
+        var offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('filtrosOffcanvas'));
+        if (offcanvas) {
+            offcanvas.hide();
+        }
+    }
+
+    // Event listeners
+    $('#aplicar-filtros').on('click', aplicarFiltros);
+    $('#limpiar-filtros').on('click', limpiarFiltros);
+
+    // Validación de fechas
+    const fechaDesde = document.getElementById('fecha_desde');
+    const fechaHasta = document.getElementById('fecha_hasta');
+    
+    if (fechaDesde && fechaHasta) {
+        fechaDesde.addEventListener('change', function() {
+            fechaHasta.min = this.value;
+        });
+        
+        fechaHasta.addEventListener('change', function() {
+            fechaDesde.max = this.value;
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% block custom_js %}
+<script src="{% static 'assets/js/plugins/select2.min.js' %}"></script>
+<script src="{% static 'assets/js/plugins/datatables.min.js' %}"></script>
+{% endblock %}
+

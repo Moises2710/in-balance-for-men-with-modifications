@@ -1,0 +1,16 @@
+<form method="post" action="{{ action_url }}" novalidate>
+    {% csrf_token %}
+      <div class="form-group">
+          <label for="id_nombre" class="form-label">Talla</label>
+          <input type="text" name="nombre" id="id_nombre"
+                class="form-control {% if form.nombre.errors %}is-invalid{% elif form.nombre.value %}is-valid{% endif %}"
+                value="{{ form.nombre.value|default:'' }}">
+          {% if form.nombre.errors %}
+            <div class="invalid-feedback">{{ form.nombre.errors.0 }}</div>
+          {% endif %}
+      </div>
+      <div class="text-start">
+        <button type="submit" class="btn btn-primary" name="action" value="save">Guardar</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+</form>

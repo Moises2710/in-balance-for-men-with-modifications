@@ -1,0 +1,445 @@
+{% extends 'inventario/base.html' %} {% load static %} {% block title %}Lista de
+Productos{% endblock %} {% block custom_css %}
+<link href="{% static 'assets/css/nuevos/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet" />
+{% endblock %} {% block pagina_css %} {% endblock %} {% block content %}
+<div class="col-sm-12">
+   <div class="card">
+      <div class="card-header d-flex justify-content-between flex-wrap">
+         <div class="header-title">
+            <h4 class="card-title">Lista de Productos</h4>
+         </div>
+         <div class="d-flex gap-2">
+            <button class="btn btn-primary btn-icon" type="button" data-bs-toggle="offcanvas"
+               data-bs-target="#filtrosOffcanvas">
+               <i class="btn-inner">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                     <path d="M10.33 16.5928H4.0293" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                     <path d="M13.1406 6.90042H19.4413" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                     <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M8.72629 6.84625C8.72629 5.5506 7.66813 4.5 6.36314 4.5C5.05816 4.5 4 5.5506 4 6.84625C4 8.14191 5.05816 9.19251 6.36314 9.19251C7.66813 9.19251 8.72629 8.14191 8.72629 6.84625Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                     <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M20.0002 16.5538C20.0002 15.2581 18.9429 14.2075 17.6379 14.2075C16.3321 14.2075 15.2739 15.2581 15.2739 16.5538C15.2739 17.8494 16.3321 18.9 17.6379 18.9C18.9429 18.9 20.0002 17.8494 20.0002 16.5538Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+               </i>
+               Filtros
+            </button>
+            <a href="{% url 'producto_create' %}" class="btn btn-primary btn-icon">
+               <i class="btn-inner">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+               </i>
+               <span>Añadir Producto</span>
+            </a>
+         </div>
+      </div>
+
+      <!-- Offcanvas de Filtros -->
+      <div class="offcanvas offcanvas-end" tabindex="-1" id="filtrosOffcanvas" aria-labelledby="filtrosOffcanvasLabel">
+         <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold" id="filtrosOffcanvasLabel">
+               Filtros Avanzados
+            </h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+         </div>
+         <div class="offcanvas-body p-0">
+            <div class="p-3">
+               <!-- Filtros de Estado -->
+               <div class="card mb-3 border-0 shadow-sm">
+                  <div class="card-header bg-body-tertiary border-0 py-3">
+                     <h6 class="mb-0 fw-bold">Estado del Producto</h6>
+                  </div>
+                  <div class="card-body">
+                     <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="filter-inactivos" />
+                        <label class="form-check-label" for="filter-inactivos">Mostrar productos inactivos</label>
+                     </div>
+                     <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="filter-sin-stock" />
+                        <label class="form-check-label" for="filter-sin-stock">Mostrar productos sin stock</label>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Filtros por Columnas -->
+               <div class="card border-0 shadow-sm">
+                  <div class="card-header bg-body-tertiary border-0 py-3">
+                     <h6 class="mb-0 fw-bold">Filtros por Columnas</h6>
+                  </div>
+                  <div class="card-body">
+                     <!-- Filtro para Código -->
+                     <div class="mb-3">
+                        <label for="filter-codigo" class="form-label fw-medium">Código</label>
+                        <input type="text" class="form-control" id="filter-codigo" placeholder="Buscar por código" />
+                     </div>
+
+                     <!-- Filtro para Tipo -->
+                     <div class="mb-3">
+                        <label for="filter-tipo" class="form-label fw-medium">Tipo</label>
+                        <select class="form-select select2-multiple" id="filter-tipo" multiple="multiple">
+                           {% for tipo in tipos %}
+                           <option value="{{ tipo.nombre }}">{{ tipo.nombre }}</option>
+                           {% endfor %}
+                        </select>
+                     </div>
+
+                     <!-- Filtro para Marca -->
+                     <div class="mb-3">
+                        <label for="filter-marca" class="form-label fw-medium">Marca</label>
+                        <select class="form-select select2-multiple" id="filter-marca" multiple="multiple">
+                           {% for marca in marcas %}
+                           <option value="{{ marca.nombre }}">{{ marca.nombre }}</option>
+                           {% endfor %}
+                        </select>
+                     </div>
+
+                     <!-- Filtro para Color -->
+                     <div class="mb-3">
+                        <label for="filter-color" class="form-label fw-medium">Color</label>
+                        <select class="form-select select2-multiple" id="filter-color" multiple="multiple">
+                           {% for color in colores %}
+                           <option value="{{ color.nombre }}">{{ color.nombre }}</option>
+                           {% endfor %}
+                        </select>
+                     </div>
+
+                     <!-- Filtro para Talla -->
+                     <div class="mb-3">
+                        <label for="filter-talla" class="form-label fw-medium">Talla</label>
+                        <select class="form-select select2-multiple" id="filter-talla" multiple="multiple">
+                           {% for talla in tallas %}
+                           <option value="{{ talla.nombre }}">{{ talla.nombre }}</option>
+                           {% endfor %}
+                        </select>
+                     </div>
+
+                     <!-- Filtro para Stock -->
+                     <div class="mb-3">
+                        <label class="form-label fw-medium">Stock</label>
+                        <div class="row g-2">
+                           <div class="col">
+                              <input type="number" class="form-control" id="filter-stock-min" placeholder="Mínimo" />
+                           </div>
+                           <div class="col">
+                              <input type="number" class="form-control" id="filter-stock-max" placeholder="Máximo" />
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Filtro para Precio Venta -->
+                     <div class="mb-3">
+                        <label class="form-label fw-medium">Precio Venta</label>
+                        <div class="row g-2">
+                           <div class="col">
+                              <input type="number" step="0.01" class="form-control" id="filter-precio-min"
+                                 placeholder="Mínimo" />
+                           </div>
+                           <div class="col">
+                              <input type="number" step="0.01" class="form-control" id="filter-precio-max"
+                                 placeholder="Máximo" />
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Botones de Acción - Sticky en la parte inferior -->
+            <div class="sticky-bottom p-3 bg-body border-top">
+               <div class="d-grid gap-2">
+                  <button class="btn btn-primary" id="btn-aplicar-filtros">
+                     Aplicar Filtros
+                  </button>
+                  <button class="btn btn-danger" id="btn-limpiar-filtros">
+                     Limpiar Todos
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div class="card-body">
+         <div class="table-responsive">
+            <table id="my-table" class="table" data-toggle="data-table">
+               <thead>
+                  <tr>
+                     <th>Imagen</th>
+                     <th>Código</th>
+                     <th>Tipo</th>
+                     <th>Marca</th>
+                     <th>Color</th>
+                     <th>Talla</th>
+                     <th>Stock</th>
+                     <th>P. Venta</th>
+                     <th>Estado</th>
+                     <th>Acciones</th>
+                  </tr>
+               </thead>
+               <tbody></tbody>
+               <tfoot>
+                  <tr>
+                     <th>Imagen</th>
+                     <th>Código</th>
+                     <th>Tipo</th>
+                     <th>Marca</th>
+                     <th>Color</th>
+                     <th>Talla</th>
+                     <th>Stock</th>
+                     <th>P. Venta</th>
+                     <th>Estado</th>
+                     <th>Acciones</th>
+                  </tr>
+               </tfoot>
+            </table>
+         </div>
+      </div>
+   </div>
+</div>
+{% endblock %} {% block custom_js %}
+<script src="{% static 'assets/js/plugins/select2.min.js' %}"></script>
+{% endblock %} {% block pagina_js %}
+<script>
+   $(document).ready(function () {
+      // Inicializar Select2 con tema Bootstrap 5
+      $(".select2-multiple").select2({
+         theme: "bootstrap-5",
+         placeholder: "Seleccione opciones",
+         allowClear: true,
+         width: "100%",
+         closeOnSelect: false,
+         dropdownParent: $("#filtrosOffcanvas"),
+      });
+
+      // Objeto para almacenar los filtros actuales
+      let filters = {
+         showInactivos: false,
+         showSinStock: false,
+         codigoFilter: "",
+         tipos: [],
+         marcas: [],
+         colores: [],
+         tallas: [],
+         stockMin: null,
+         stockMax: null,
+         precioMin: null,
+         precioMax: null,
+      };
+
+      // Inicializar DataTable
+      var table = $("#my-table").DataTable({
+         ajax: {
+            url: "{% url 'producto_ajax' %}",
+            type: "GET",
+            data: function (d) {
+               // Agregar todos los filtros al request
+               d.show_inactivos = $("#filter-inactivos").is(":checked");
+               d.show_sin_stock = $("#filter-sin-stock").is(":checked");
+               d.codigo_filter = filters.codigoFilter;
+               d.tipos = filters.tipos;
+               d.marcas = filters.marcas;
+               d.colores = filters.colores;
+               d.tallas = filters.tallas;
+               d.stock_min = filters.stockMin;
+               d.stock_max = filters.stockMax;
+               d.precio_min = filters.precioMin;
+               d.precio_max = filters.precioMax;
+            },
+         },
+         processing: true,
+         serverSide: true,
+         responsive: true,
+         autoWidth: false,
+         dom: '<"row align-items-center"<"col-md-6" l><"col-md-6" f>><"table-responsive my-3" rt><"row align-items-center" <"col-md-6" i><"col-md-6" p>><"clear">',
+         language: {
+            url: "{% static 'assets/js/nuevos/es-ES.json' %}",
+         },
+         columns: [
+            {
+               data: null,
+               render: function (data, type, row) {
+                  if (row.thumbnail_url) {
+                     return `<img src="${row.thumbnail_url}" loading="lazy" class="rounded img-fluid avatar-40 bg-soft-primary" width="50" title="Producto imagen">`;
+                  } else if (row.has_image) {
+                     return `
+                            <svg loading="lazy" class="rounded img-fluid avatar-40 bg-soft-danger" width="32" title="imagen-corrupta" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" title="Error al cargar la imagen">
+                            <path d="M14.2647 15.9377L12.5473 14.2346C11.758 13.4519 11.3633 13.0605 10.9089 12.9137C10.5092 12.7845 10.079 12.7845 9.67922 12.9137C9.22485 13.0605 8.83017 13.4519 8.04082 14.2346L4.04193 18.2622M14.2647 15.9377L14.606 15.5991C15.412 14.7999 15.8149 14.4003 16.2773 14.2545C16.6839 14.1262 17.1208 14.1312 17.5244 14.2688C17.9832 14.4253 18.3769 14.834 19.1642 15.6515L20 16.5001M14.2647 15.9377L18.22 19.9628M12 4H7.2C6.07989 4 5.51984 4 5.09202 4.21799C4.7157 4.40973 4.40973 4.71569 4.21799 5.09202C4 5.51984 4 6.0799 4 7.2V16.8C4 17.4466 4 17.9066 4.04193 18.2622M4.04193 18.2622C4.07264 18.5226 4.12583 18.7271 4.21799 18.908C4.40973 19.2843 4.7157 19.5903 5.09202 19.782C5.51984 20 6.07989 20 7.2 20H16.8C17.9201 20 18.4802 20 18.908 19.782C19.2843 19.5903 19.5903 19.2843 19.782 18.908C20 18.4802 20 17.9201 20 16.8V12M16 3L18.5 5.5M18.5 5.5L21 8M18.5 5.5L21 3M18.5 5.5L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        `;
+                  } else {
+                     return `
+                            <img 
+                                src="{% static 'assets/images/svg/image-square.svg' %}"
+                                loading="lazy" 
+                                class="rounded img-fluid avatar-40 bg-soft-primary" 
+                                width="32"
+                                title="Sin imagen"
+                            > 
+                        `;
+                  }
+               },
+            },
+            { data: "codigo" },
+            { data: "tipo" },
+            { data: "marca" },
+            { data: "color" },
+            { data: "talla" },
+            { data: "stock", className: "text-end" },
+            {
+               data: "precio_venta",
+               className: "text-end",
+               render: function (data) {
+                  return `$${parseFloat(data).toFixed(2)}`;
+               },
+            },
+            {
+               data: "is_active",
+               render: function (data) {
+                  return `<span class="badge rounded-pill ${data ? "bg-primary" : "bg-danger"
+                     }">
+                            ${data ? "Activo" : "Inactivo"}</span>`;
+               },
+            },
+            {
+               data: "id",
+               render: function (data, type, row) {
+                  return `
+                    <div class="flex align-items-center list-user-action">
+                        <a type="button" class="btn btn-sm btn-icon btn-info" data-bs-toggle="tooltip" data-bs-placement="top" href="/inventario/productos/${data}/" aria-label="ver" data-bs-original-title="ver">
+                            <span class="btn-inner">
+                                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">                                    
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15.1614 12.0531C15.1614 13.7991 13.7454 15.2141 11.9994 15.2141C10.2534 15.2141 8.83838 13.7991 8.83838 12.0531C8.83838 10.3061 10.2534 8.89111 11.9994 8.89111C13.7454 8.89111 15.1614 10.3061 15.1614 12.0531Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M11.998 19.355C15.806 19.355 19.289 16.617 21.25 12.053C19.289 7.48898 15.806 4.75098 11.998 4.75098H12.002C8.194 4.75098 4.711 7.48898 2.75 12.053C4.711 16.617 8.194 19.355 12.002 19.355H11.998Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>                                
+                                </svg>                                                                    
+                            </span>
+                        </a>
+                        <a class="btn btn-sm btn-icon btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" data-original-title="Edit" href="/inventario/productos/editar/${data}/" aria-label="Edit" data-bs-original-title="Edit">
+                            <span class="btn-inner">
+                                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M11.4925 2.78906H7.75349C4.67849 2.78906 2.75049 4.96606 2.75049 8.04806V16.3621C2.75049 19.4441 4.66949 21.6211 7.75349 21.6211H16.5775C19.6625 21.6211 21.5815 19.4441 21.5815 16.3621V12.3341" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.82812 10.921L16.3011 3.44799C17.2321 2.51799 18.7411 2.51799 19.6721 3.44799L20.8891 4.66499C21.8201 5.59599 21.8201 7.10599 20.8891 8.03599L13.3801 15.545C12.9731 15.952 12.4211 16.181 11.8451 16.181H8.09912L8.19312 12.401C8.20712 11.845 8.43412 11.315 8.82812 10.921Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M15.1655 4.60254L19.7315 9.16854" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </a>
+                        <a class="btn btn-sm btn-icon btn-soft-warning" data-bs-toggle="tooltip" data-bs-placement="top" href="/inventario/productos/toggle/${data}/" aria-label="Delete" data-bs-original-title="Delete">
+                            <span class="btn-inner">
+                                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20.1642 7.1603H6.54639" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M16.0681 3.0827L20.1648 7.1605L16.0681 11.2383" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M3.83276 16.889H17.4505" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M7.92894 20.9165L3.83228 16.8387L7.92894 12.7609" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </a>
+                    </div>
+                    `;
+               },
+            },
+         ],
+      });
+
+      // Eventos directos para los switches
+      $("#filter-inactivos, #filter-sin-stock").change(function () {
+         table.ajax.reload(null, false); // Recarga sin resetear paginación
+      });
+
+      // Función para aplicar filtros
+      function aplicarFiltros() {
+         // Actualizar objeto filters con los valores actuales
+         filters = {
+            showInactivos: $("#filter-inactivos").is(":checked"),
+            showSinStock: $("#filter-sin-stock").is(":checked"),
+            codigoFilter: $("#filter-codigo").val() || "",
+            tipos: $("#filter-tipo").val() || [],
+            marcas: $("#filter-marca").val() || [],
+            colores: $("#filter-color").val() || [],
+            tallas: $("#filter-talla").val() || [],
+            stockMin: $("#filter-stock-min").val() || null,
+            stockMax: $("#filter-stock-max").val() || null,
+            precioMin: $("#filter-precio-min").val() || null,
+            precioMax: $("#filter-precio-max").val() || null,
+         };
+
+         // Recargar la tabla con los nuevos filtros
+         table.ajax.reload();
+      }
+
+      // Evento para el botón aplicar filtros
+      $("#btn-aplicar-filtros").on("click", aplicarFiltros);
+
+      // Evento para limpiar filtros
+      $("#btn-limpiar-filtros").on("click", function () {
+         // Resetear controles
+         $("#filter-inactivos, #filter-sin-stock").prop("checked", false);
+         $("#filter-codigo").val("");
+         $(".select2-multiple").val(null).trigger("change");
+         $('input[type="number"]').val("");
+
+         // Resetear objeto filters
+         filters = {
+            showInactivos: false,
+            showSinStock: false,
+            codigoFilter: "",
+            tipos: [],
+            marcas: [],
+            colores: [],
+            tallas: [],
+            stockMin: null,
+            stockMax: null,
+            precioMin: null,
+            precioMax: null,
+         };
+
+         // Recargar tabla sin filtros
+         table.ajax.reload();
+      });
+
+      // Permitir aplicar filtros con Enter
+      $(".form-control").keypress(function (e) {
+         if (e.which === 13) {
+            aplicarFiltros();
+
+            // Cerrar el offcanvas después de aplicar
+            var offcanvas = bootstrap.Offcanvas.getInstance(
+               document.getElementById("filtrosOffcanvas")
+            );
+            offcanvas.hide();
+         }
+      });
+
+      // Inicializar tooltips
+      $('[data-bs-toggle="tooltip"]').tooltip();
+   });
+</script>
+
+<script>
+   // Verifica que jQuery esté cargado
+   if (typeof jQuery == "undefined") {
+      console.error("jQuery no está cargado");
+   } else {
+      console.log("jQuery versión:", jQuery.fn.jquery);
+   }
+
+   // Verifica que Select2 esté cargado
+   if (typeof jQuery.fn.select2 == "undefined") {
+      console.error("Select2 no está cargado");
+   } else {
+      console.log("Select2 está disponible");
+   }
+
+   // Verifica que DataTables esté cargado
+   if (typeof jQuery.fn.DataTable == "undefined") {
+      console.error("DataTables no está cargado");
+   } else {
+      console.log("DataTables está disponible");
+   }
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'inventario/base.html' %}
+{% block title %}Eliminar Usuario{% endblock %}
+{% block content %}
+<div class="col-md-6 offset-md-3">
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h5>¿Estás seguro de eliminar a {{ object.username }}?</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <p>Esta acción no se puede deshacer.</p>
+                <button type="submit" class="btn btn-danger">Eliminar</button>
+                <a href="{% url 'usuario_list' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

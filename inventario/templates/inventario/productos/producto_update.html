@@ -1,0 +1,245 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+{% block title %}Editar Producto{% endblock %}
+{% block pagina_css %}
+<link rel="stylesheet" href="{% static 'custom/css/image_preview.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="col-12 mb-4">
+  <div class="card">
+    <div class="card-header">
+      <h4 class="card-title">Editar Producto</h4>
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        
+        <!-- Grid Container -->
+        <div class="row g-3">
+          <!-- Columna Imagen (25% width) -->
+          <div class="col-lg-3">
+            <div class="d-flex flex-column h-100">
+              <label class="form-label">Imagen                 
+                <!-- Enlace para eliminar imagen existente -->
+                {% if form.imagen.value %}
+                  <input type="checkbox" name="imagen-clear" class="form-check-input">
+                  Eliminar
+                {% endif %}
+              </label>
+              <div class="border rounded d-flex justify-content-center align-items-center position-relative overflow-hidden" 
+                   style="height: 100%; min-height: 300px; aspect-ratio: 1/1; max-height: calc(100vh - 200px);">
+                
+                <input type="file" name="imagen" id="id_imagen" class="position-absolute w-100 h-100 opacity-0 cursor-pointer">
+                
+                <!-- Vista previa imagen -->
+                <img id="imagen-preview" src="{% if form.imagen.value %}{{ form.imagen.value.url }}{% endif %}" alt="Vista previa" 
+                     class="img-fluid {% if not form.imagen.value %}d-none{% endif %} w-100 h-auto" 
+                     style="object-fit: contain; max-height: 100%;">
+                
+                <!-- Placeholder -->
+                <div id="imagen-placeholder" class="text-center text-muted p-3 w-100 h-100 d-flex flex-column justify-content-center align-items-center {% if form.imagen.value %}d-none{% endif %}">
+                  <svg width="41" height="41" viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                  </svg>
+                  <p class="mt-2 mb-0">Sube tu imagen</p>
+                </div>
+              </div>
+              {% if form.imagen.errors %}
+                <div class="invalid-feedback d-block">{{ form.imagen.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <!-- Columna Campos (75% width) -->
+          <div class="col-lg-9">
+            <div class="row g-3">
+              <!-- Fila 1 -->
+              <div class="col-md-4">
+                <label for="id_codigo" class="form-label">Código</label>
+                <input type="text" name="codigo" id="id_codigo"
+                       class="form-control {% if form.codigo.errors %}is-invalid{% elif form.codigo.value %}is-valid{% endif %}"
+                       value="{{ form.codigo.value|default:'' }}">
+                {% if form.codigo.errors %}
+                  <div class="invalid-feedback">{{ form.codigo.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="id_precio_venta" class="form-label">Precio de Venta</label>
+                <input type="number" min="0" step="0.01" name="precio_venta" id="id_precio_venta"
+                       class="form-control {% if form.precio_venta.errors %}is-invalid{% elif form.precio_venta.value %}is-valid{% endif %}"
+                       value="{{ form.precio_venta.value|stringformat:'.2f'  }}">
+                {% if form.precio_venta.errors %}
+                  <div class="invalid-feedback">{{ form.precio_venta.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="id_precio_compra" class="form-label">Precio de Compra</label>
+                <input type="number" min="0" step="0.01" name="precio_compra" id="id_precio_compra"
+                       class="form-control {% if form.precio_compra.errors %}is-invalid{% elif form.precio_compra.value %}is-valid{% endif %}"
+                       value="{{ form.precio_compra.value|stringformat:'.2f'  }}">
+                {% if form.precio_compra.errors %}
+                  <div class="invalid-feedback">{{ form.precio_compra.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <!-- Fila 2 -->
+              <div class="col-md-4">
+                <label for="id_stock" class="form-label">Stock</label>
+                <input type="number" min="1" step="1" name="stock" id="id_stock"
+                       class="form-control {% if form.stock.errors %}is-invalid{% elif form.stock.value %}is-valid{% endif %}"
+                       value="{{ form.stock.value|default:'' }}">
+                {% if form.stock.errors %}
+                  <div class="invalid-feedback">{{ form.stock.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="id_tipo" class="form-label">Tipo</label>
+                <select name="tipo" id="id_tipo"
+                        class="form-select {% if form.tipo.errors %}is-invalid{% elif form.tipo.value %}is-valid{% endif %}">
+                  <option value="">Selecciona tipo</option>
+                  {% for value, label in form.tipo.field.choices %}
+                    <option value="{{ value }}" {% if form.tipo.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+                {% if form.tipo.errors %}
+                  <div class="invalid-feedback">{{ form.tipo.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="id_marca" class="form-label">Marca</label>
+                <select name="marca" id="id_marca"
+                        class="form-select {% if form.marca.errors %}is-invalid{% elif form.marca.value %}is-valid{% endif %}">
+                  <option value="">Selecciona marca</option>
+                  {% for value, label in form.marca.field.choices %}
+                    <option value="{{ value }}" {% if form.marca.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+                {% if form.marca.errors %}
+                  <div class="invalid-feedback">{{ form.marca.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <!-- Fila 3 -->
+              <div class="col-md-4">
+                <label for="id_fit" class="form-label">Fit</label>
+                <select name="fit" id="id_fit"
+                        class="form-select {% if form.fit.errors %}is-invalid{% elif form.fit.value %}is-valid{% endif %}">
+                  <option value="">Selecciona fit</option>
+                  {% for value, label in form.fit.field.choices %}
+                    <option value="{{ value }}" {% if form.fit.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+                {% if form.fit.errors %}
+                  <div class="invalid-feedback">{{ form.fit.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="id_color" class="form-label">Color</label>
+                <select name="color" id="id_color"
+                        class="form-select {% if form.color.errors %}is-invalid{% elif form.color.value %}is-valid{% endif %}">
+                  <option value="">Selecciona color</option>
+                  {% for value, label in form.color.field.choices %}
+                    <option value="{{ value }}" {% if form.color.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+                {% if form.color.errors %}
+                  <div class="invalid-feedback">{{ form.color.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="id_talla" class="form-label">Talla</label>
+                <select name="talla" id="id_talla"
+                        class="form-select {% if form.talla.errors %}is-invalid{% elif form.talla.value %}is-valid{% endif %}">
+                  <option value="">Selecciona talla</option>
+                  {% for value, label in form.talla.field.choices %}
+                    <option value="{{ value }}" {% if form.talla.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+                {% if form.talla.errors %}
+                  <div class="invalid-feedback">{{ form.talla.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <!-- Fila 4 - Descripción (full width) -->
+              <div class="col-12">
+                <label for="id_descripcion" class="form-label">Descripción</label>
+                <input type="text" name="descripcion" id="id_descripcion"
+                       class="form-control {% if form.descripcion.errors %}is-invalid{% elif form.descripcion.value %}is-valid{% endif %}"
+                       value="{{ form.descripcion.value|default:'' }}">
+                {% if form.descripcion.errors %}
+                  <div class="invalid-feedback">{{ form.descripcion.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="buttons-container mt-4">
+          <div class="d-flex flex-md-row flex-column gap-2 w-100">
+            <div class="d-flex flex-md-row flex-column gap-2 flex-grow-1">
+              <button type="submit" class="btn btn-primary flex-md-grow-0 flex-grow-1" name="action" value="save">Guardar</button>
+              <button type="submit" class="btn btn-soft-primary flex-md-grow-0 flex-grow-1" name="action" value="save_and_add_new">Guardar y añadir otro</button>
+              <button type="submit" class="btn btn-soft-primary flex-md-grow-0 flex-grow-1" name="action" value="save_and_continue">Guardar y continuar editando</button>
+            </div>
+            <a href="{% url 'producto_list' %}" class="btn btn-danger flex-md-grow-0 flex-grow-1">Cancelar</a>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block pagina_js %}
+
+<script>
+$(document).ready(function() {
+  $('#id_imagen').change(function(event) {
+    const input = event.target;
+    const preview = $('#imagen-preview');
+    const placeholder = $('#imagen-placeholder');
+    
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        preview.attr('src', e.target.result);
+        preview.removeClass('d-none');
+        placeholder.addClass('d-none');
+        
+        // Ajustar imagen muy grande
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+          if(this.width > 1000 || this.height > 1000) {
+            preview.css('max-height', '100%').css('max-width', '100%');
+          }
+        };
+      }
+      
+      reader.readAsDataURL(input.files[0]);
+    } else {
+      preview.attr('src', '#').addClass('d-none');
+      placeholder.removeClass('d-none');
+    }
+  });
+});
+</script>
+{% endblock %}

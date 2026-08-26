@@ -1,0 +1,400 @@
+{% extends 'inventario/base.html' %} {% load static %} {% block title %}Generar
+Venta{% endblock %} {% block custom_css %}
+<link href="{% static 'assets/css/nuevos/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet" />
+{% endblock %} {% block pagina_css %}
+<style>
+  .card-productos {
+    height: calc(100% - 20px);
+  }
+
+  .card-resumen {
+    height: calc(100% - 20px);
+  }
+
+  .table-productos {
+    max-height: 300px;
+    overflow-y: auto;
+    display: block;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+  }
+
+  .table-productos thead {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 1;
+  }
+
+  .table-productos table {
+    margin-bottom: 0;
+  }
+
+  .table-productos th,
+  .table-productos td {
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    font-size: 0.875rem;
+  }
+
+  .stock-disponible {
+    font-size: 0.8em;
+    color: #6c757d;
+  }
+
+  .fila-producto {
+    transition: all 0.3s ease;
+  }
+
+  .fila-producto:hover {
+    background-color: #f8f9fa;
+  }
+
+  .remove-producto {
+    transition: all 0.2s ease;
+  }
+
+  .remove-producto:hover {
+    transform: scale(1.1);
+  }
+
+  .producto-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .producto-item:hover {
+    background-color: #f8f9fa;
+  }
+
+  .producto-item.selected {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196f3;
+  }
+
+  .resumen-venta-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .resumen-venta-item:last-child {
+    border-bottom: none;
+  }
+
+  .input-group-text {
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  .estado-pago {
+    font-weight: bold;
+  }
+
+  .estado-pago.pagado {
+    color: #28a745;
+  }
+
+  .estado-pago.pendiente {
+    color: #dc3545;
+  }
+
+  .estado-pago.exceso {
+    color: #dc3545;
+    font-weight: bold;
+  }
+
+  .producto-seleccionado {
+    background-color: #d4edda !important;
+    border-left: 4px solid #28a745 !important;
+  }
+
+  .btn-producto-seleccionado {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+  }
+
+  .btn-producto-seleccionado:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+  }
+
+  .pago-item {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background-color: #f8f9fc;
+  }
+
+  .pago-item:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="col-sm-12">
+  <form id="venta-form" method="post">
+    {% csrf_token %}
+    <div class="row">
+      <!-- Card de Productos (9/12) -->
+      <div class="col-lg-9">
+        <div class="card card-productos mb-4 border-0 shadow-sm">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="header-title">Productos</h5>
+          </div>
+          <div class="card-body">
+            <!-- Busqueda rápida de productos -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="input-group">
+                  <input type="text" class="form-control" id="busqueda-rapida"
+                    placeholder="Buscar producto por código..." />
+                  <button class="btn btn-primary" type="button" id="btn-agregar-rapido">
+                    Agregar
+                  </button>
+                </div>
+              </div>
+              <div class="col-md-6 d-flex justify-content-end">
+                <button type="button" class="btn btn-primary me-2" id="add-producto" data-bs-toggle="modal"
+                  data-bs-target="#modalProductos">
+                  Búsqueda avanzada
+                </button>
+                <button type="button" class="btn btn-danger" id="limpiar-productos">
+                  Limpiar Tabla
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de productos seleccionados -->
+            <div class="table-responsive table-productos mb-3">
+              <table class="table table-hover align-middle" id="productos-table">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 15%">Código</th>
+                    <th style="width: 15%">Tipo</th>
+                    <th style="width: 15%">Marca</th>
+                    <th style="width: 10%">Talla</th>
+                    <th style="width: 10%">Cantidad</th>
+                    <th style="width: 15%">P. Unitario</th>
+                    <th style="width: 15%">Subtotal</th>
+                    <th style="width: 5%"></th>
+                  </tr>
+                </thead>
+                <tbody id="productos-body">
+                  <!-- Filas dinámicas -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Sección de Pagos -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Pagos</h6>
+                <button type="button" class="btn btn-sm btn-primary" id="add-pago">
+                  Agregar
+                </button>
+              </div>
+
+              <div id="pagos-container">
+                <!-- Filas de pagos dinámicas -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card de Resumen (3/12) -->
+      <div class="col-lg-3">
+        <div class="card card-resumen mb-4 border-0 shadow-sm">
+          <div class="card-header">
+            <h5 class="header-title">Resumen de Venta</h5>
+          </div>
+          <div class="card-body">
+            <!-- Información de cliente y vendedor -->
+            <div class="row g-2">
+              <div class="col-12">
+                <label for="fecha" class="form-label fw-bold">Fecha</label>
+                <input type="datetime-local" id="fecha" name="fecha" class="form-control form-control-sm shadow-sm" />
+              </div>
+              <div class="col-12">
+                <label for="cliente" class="form-label fw-bold">Cliente</label>
+                <select id="cliente" name="cliente" class="form-select form-select-sm shadow-sm" required>
+                  <option value="">Seleccione un cliente</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label for="vendedor" class="form-label fw-bold">Vendedor</label>
+                <select id="vendedor" name="vendedor" class="form-select form-select-sm shadow-sm"
+                  data-user-id="{{ request.user.id }}">
+                  <option value="">Seleccione un vendedor</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label for="comision_porcentaje" class="form-label fw-bold">Comisión (%)</label>
+                <input type="number" step="0.01" min="0" max="100" id="comision_porcentaje" name="comision_porcentaje"
+                  class="form-control form-control-sm shadow-sm" value="10" {% if not request.user.is_superuser and not request.user.is_staff %}readonly{% endif %} />
+              </div>
+            </div>
+            <!-- Resumen de montos -->
+            <div class="resumen-venta-item">
+              <div class="d-flex justify-content-between mb-2">
+                <span>Subtotal:</span>
+                <strong id="subtotal">$0.00</strong>
+              </div>
+              <div class="input-group input-group-sm mb-2">
+                <span class="input-group-text">Descuento ($)</span>
+                <input type="number" step="0.01" min="0" id="descuento" name="descuento" class="form-control"
+                  value="0" />
+              </div>
+            </div>
+
+            <div class="resumen-venta-item">
+              <div class="d-flex justify-content-between mb-2">
+                <span>Total:</span>
+                <strong id="total">$0.00</strong>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span>Total pagado:</span>
+                <strong id="total_pagado">$0.00</strong>
+              </div>
+            </div>
+
+            <div class="resumen-venta-item">
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="entrega" name="entrega" />
+                <label class="form-check-label fw-bold" for="entrega">Productos entregados</label>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <span>Estado:</span>
+                <span id="estado-pago" class="estado-pago pendiente">Pendiente</span>
+              </div>
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-success btn-lg">
+                Completar Venta
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Modal para seleccionar productos -->
+<div class="modal fade" id="modalProductos" tabindex="-1" aria-labelledby="modalProductosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalProductosLabel">
+          Seleccionar Producto
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Filtros -->
+        <div class="row mb-3">
+          <div class="col-md-2">
+            <label class="form-label">Código</label>
+            <input type="text" class="form-control" id="filtroCodigo" placeholder="Buscar por código..." />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Marca</label>
+            <select class="form-select" id="filtroMarca">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" id="filtroTipo">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Talla</label>
+            <select class="form-select" id="filtroTalla">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="col-md-1">
+            <label class="form-label">Precio Min</label>
+            <input type="number" step="0.01" min="0" class="form-control" id="filtroPrecioMin" placeholder="0.00" />
+          </div>
+          <div class="col-md-1">
+            <label class="form-label">Precio Max</label>
+            <input type="number" step="0.01" min="0" class="form-control" id="filtroPrecioMax" placeholder="999.99" />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">&nbsp;</label>
+            <button type="button" class="btn btn-primary w-100" id="btnFiltrar">
+              Filtrar
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de productos -->
+        <div class="table-responsive" style="max-height: 400px">
+          <table class="table table-hover table-striped">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th>Código</th>
+                <th>Marca</th>
+                <th>Tipo</th>
+                <th>Color</th>
+                <th>Talla</th>
+                <th>Stock</th>
+                <th>Precio</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="listaProductos">
+              <!-- Productos se cargan dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para confirmar limpiar tabla -->
+<div class="modal fade" id="modalConfirmarLimpiar" tabindex="-1" aria-labelledby="modalConfirmarLimpiarLabel"
+  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalConfirmarLimpiarLabel">
+          Confirmar acción
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          ¿Está seguro que desea limpiar todos los productos de la venta?
+        </p>
+        <p class="text-muted small">
+          Esta acción no se puede deshacer. Se eliminarán todos los productos
+          agregados y deberá volver a seleccionarlos.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" id="confirmarLimpiarTabla">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block custom_js %} {% endblock %} {% block pagina_js %}
+<script src="{% static 'custom/js/venta_create.js' %}"></script>
+{% endblock %}

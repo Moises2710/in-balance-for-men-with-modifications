@@ -1,0 +1,152 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+{% block pagina_css %}
+<style>
+  #detalle-producto td:first-child {
+    border-right: 1px solid #dee2e6;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="col-12 col-md-8">
+  <div class="card">
+    <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+      <div class="header-title mb-2 mb-md-0">
+        <h4 class="card-title m-0">Perfil de Usuario</h4>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        {% if usuario.pk == request.user.pk %}
+        <a href="{% url 'perfil_editar' %}" class="btn btn-primary">Editar perfil</a>
+        {% endif %}
+        <a href="{% url 'usuario_list' %}" class="btn btn-primary">Volver</a>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table id="detalle-usuario" class="table mb-0 mt-2" role="grid">
+          <tbody>
+            <tr><hr class="hr-horizontal"><td><strong>Usuario</strong></td><td>{{ usuario.username }}</td></tr>
+            <tr><td><strong>Email</strong></td><td>{{ usuario.email|default:"No registrado" }}</td></tr>
+            <tr><td><strong>Teléfono</strong></td><td>{{ usuario.telefono|default:"No registrado" }}</td></tr>
+            <tr><td><strong>Nombre</strong></td><td>{{ usuario.first_name|default:"No registrado" }}</td></tr>
+            <tr><td><strong>Apellido</strong></td><td>{{ usuario.last_name|default:"No registrado" }}</td></tr>
+            <tr><td><strong>¿Staff?</strong></td><td>{% if usuario.is_staff %}Sí{% else %}No{% endif %}</td></tr>
+            <tr><td><strong>¿Superusuario?</strong></td><td>{% if usuario.is_superuser %}Sí{% else %}No{% endif %}</td></tr>
+            <tr><td><strong>Último inicio de sesión</strong></td><td>{{ usuario.last_login|date:"d/m/Y H:i" }}</td></tr>
+            <tr><td><strong>Fecha de creación</strong></td><td>{{ usuario.date_joined|date:"d/m/Y H:i" }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Columna derecha: imagen card -->
+<div class="col-12 col-md-4 mb-4">
+  <div class="row">
+    <!-- Imagen del usuario -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="card-title mb-0 w-100 text-center">Imagen de Perfil</h4>
+      </div>
+      <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 200px;">
+        {% if usuario.imagen %}
+        <div class="text-center">
+          <img src="{{ usuario.get_image_url }}" 
+               loading="lazy" 
+               alt="Imagen del producto" 
+               class="img-fluid mx-auto d-block"
+               style="max-height: 300px; width: auto; object-fit: contain;">
+        </div>
+        {% else %}
+        <div class="text-muted text-center">
+          <p class="m-0">No hay imagen disponible</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Estado del usuario -->
+    <div class="card border-bottom border-4 border-0 {% if usuario.is_active %}border-primary{% else %}border-danger{% endif %}">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div><span><strong>Estado:</strong></span></div>
+          <div><span><strong>{% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}</strong></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if usuario.pk == request.user.pk %}
+
+<!-- Modal Bootstrap -->
+<div class="modal fade" id="passwordChangedModal" tabindex="-1" aria-labelledby="passwordChangedLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title w-100" id="passwordChangedLabel">Contraseña actualizada</h5>
+      </div>
+      <div class="modal-body">
+        ✅ Tu contraseña fue cambiada exitosamente.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const input = document.getElementById('id_imagen');
+  const preview = document.getElementById('imagen-preview');
+  const placeholder = document.getElementById('imagen-placeholder');
+
+  input?.addEventListener('change', function () {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        if (preview) {
+          preview.src = e.target.result;
+        } else {
+          const newImg = document.createElement('img');
+          newImg.id = 'imagen-preview';
+          newImg.src = e.target.result;
+          newImg.className = 'img-fluid rounded-circle';
+          newImg.style.maxHeight = '300px';
+          input.parentNode.insertBefore(newImg, input);
+        }
+        if (placeholder) placeholder.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+});
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('password_changed') === '1') {
+      const modal = new bootstrap.Modal(document.getElementById('passwordChangedModal'));
+      modal.show();
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('password_changed') === '1') {
+      const modal = new bootstrap.Modal(document.getElementById('passwordChangedModal'));
+      modal.show();
+
+      // Eliminar el parámetro de la URL sin recargar la página
+      const newUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

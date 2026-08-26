@@ -1,0 +1,115 @@
+{% extends 'inventario/base.html' %} {% load static %} {% block title %}{{ title}}{% endblock %} {% block pagina_css %}
+<style>
+    #detalle-merma td:first-child {
+        border-right: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %} {% block content %}
+<div class="col-12 col-md-8">
+    <div class="card">
+        <div
+            class="card-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+            <div class="header-title mb-2 mb-md-0">
+                <h4 class="card-title m-0">Detalles de la Merma</h4>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'producto_detail' pk=merma.id_producto.id %}" class="btn btn-primary">Ver Producto</a>
+                <a href="{% url 'merma_list' %}" class="btn btn-primary">Volver</a>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="detalle-merma" class="table mb-0 mt-2" role="grid">
+                    <tbody>
+                        <tr>
+                            <hr class="hr-horizontal" />
+                            <td><strong>ID Merma</strong></td>
+                            <td>#{{ merma.id }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Producto</strong></td>
+                            <td>ID({{ merma.id_producto.codigo }}) - {{ merma.id_producto.tipo.nombre }} - {{ merma.id_producto.marca.nombre }} - {{ merma.id_producto.color.nombre }} - {{merma.id_producto.talla.nombre }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fecha</strong></td>
+                            <td>{{ merma.fecha|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cantidad Mermada</strong></td>
+                            <td class="text-danger fw-bold">{{ merma.cantidad }} unidades</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Precio de Compra</strong></td>
+                            <td>${{ merma.precio_compra|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Costo</strong></td>
+                            <td class="text-danger fw-bold">${{ merma.total_costo|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Origen</strong></td>
+                            <td>
+                                <span class="badge rounded-pill bg-warning">
+                                    {{ merma.get_origen_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% if merma.motivo %}
+                        <tr>
+                            <td><strong>Motivo</strong></td>
+                            <td>{{ merma.motivo | default:"No registrado" }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td><strong>Precio de Venta</strong></td>
+                            <td>${{ merma.id_producto.precio_venta|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Margen Perdido</strong></td>
+                            <td class="text-danger fw-bold">${{ merma.margen_ganancia|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-12 col-md-4 mb-4">
+    <div class="row">
+        <div class="card">
+            <div class="card-header">
+                <div class="header-title">
+                    <h4 class="card-title mb-0 text-center w-100">Imagen del Producto</h4>
+                </div>
+            </div>
+            <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 200px">
+                {% if merma.id_producto.imagen %}
+                <div class="text-center">
+                    <img src="{{ merma.id_producto.get_image_url }}" loading="lazy" alt="Imagen del producto"
+                        class="img-fluid mx-auto d-block" style="max-height: 300px; width: auto; object-fit: contain" />
+                </div>
+                {% else %}
+                <div class="text-muted text-center">
+                    <p class="m-0">No hay imagen disponible</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div
+            class="card border-bottom border-4 border-0 {% if merma.id_producto.is_active == True %}border-success{% else %}border-danger{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span><strong>Estado del Producto:</strong></span>
+                    </div>
+                    <div>
+                        <span><strong>{% if merma.id_producto.is_active == True %}Activo{% else %}No Activo{% endif %}</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

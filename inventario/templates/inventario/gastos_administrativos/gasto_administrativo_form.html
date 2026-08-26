@@ -1,0 +1,62 @@
+<form method="post" action="{{ action_url }}" novalidate>
+    {% csrf_token %}
+    <div class="form-group mb-3">
+        <label for="id_nombre" class="form-label">Nombre del Gasto</label>
+        {{ form.nombre }}
+        {% if form.nombre.errors %}
+        <div class="invalid-feedback">{{ form.nombre.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="id_monto" class="form-label">Monto</label>
+        <div class="input-group">
+            <span class="input-group-text">$</span>
+            {{ form.monto }}
+            {% if form.monto.errors %}
+            <div class="invalid-feedback">{{ form.monto.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="id_fecha" class="form-label">Fecha</label>
+        {{ form.fecha }}
+        {% if form.fecha.errors %}
+        <div class="invalid-feedback">{{ form.fecha.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <div class="text-start">
+        <button type="submit" class="btn btn-primary" name="action" value="save">
+            Guardar
+        </button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+            Cancelar
+        </button>
+    </div>
+</form>
+
+<script>
+    // Función para establecer la fecha actual automáticamente
+    function establecerFechaActual() {
+        const fechaInput = document.getElementById("id_fecha");
+        if (fechaInput && !fechaInput.value) {
+            // Obtener la fecha actual en formato YYYY-MM-DD
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, "0");
+            const day = String(today.getDate()).padStart(2, "0");
+            const fechaActual = `${year}-${month}-${day}`;
+
+            // Establecer la fecha actual
+            fechaInput.value = fechaActual;
+        }
+    }
+
+    // Ejecutar cuando el DOM esté listo
+    document.addEventListener("DOMContentLoaded", establecerFechaActual);
+
+    // También ejecutar inmediatamente (por si el DOM ya está listo)
+    establecerFechaActual();
+</script>

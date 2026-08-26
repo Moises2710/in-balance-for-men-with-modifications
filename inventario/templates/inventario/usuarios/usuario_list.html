@@ -1,0 +1,670 @@
+{% extends 'inventario/base.html' %} {% load static %} {% block title %}Lista de
+Usuarios{% endblock %} {% block custom_css %}
+<link
+  href="{% static 'assets/css/nuevos/select2.min.css' %}"
+  rel="stylesheet"
+/>
+<link
+  href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}"
+  rel="stylesheet"
+/>
+<style>
+  /* Estilos para el toggle de contraseña */
+  .password-wrapper {
+    position: relative;
+  }
+
+  .password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 10;
+    width: 20px;
+    height: 20px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .password-toggle:hover {
+    opacity: 1;
+  }
+
+  .password-wrapper .form-control {
+    padding-right: 3rem;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="col-sm-12">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between flex-wrap">
+      <div class="header-title">
+        <h4 class="card-title">Lista de Usuarios</h4>
+      </div>
+      <div class="d-flex gap-2">
+        <button
+          class="btn btn-primary btn-icon"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#filtrosOffcanvas"
+        >
+          <i class="btn-inner">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                d="M10.33 16.5928H4.0293"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+              <path
+                d="M13.1406 6.90042H19.4413"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M8.72629 6.84625C8.72629 5.5506 7.66813 4.5 6.36314 4.5C5.05816 4.5 4 5.5506 4 6.84625C4 8.14191 5.05816 9.19251 6.36314 9.19251C7.66813 9.19251 8.72629 8.14191 8.72629 6.84625Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M20.0002 16.5538C20.0002 15.2581 18.9429 14.2075 17.6379 14.2075C16.3321 14.2075 15.2739 15.2581 15.2739 16.5538C15.2739 17.8494 16.3321 18.9 17.6379 18.9C18.9429 18.9 20.0002 17.8494 20.0002 16.5538Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+            </svg>
+          </i>
+          Filtros
+        </button>
+
+        {% if perms.inventario.add_customuser %}
+        <a href="{% url 'usuario_create' %}" class="btn btn-primary btn-icon">
+          <i class="btn-inner">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              ></path>
+            </svg>
+          </i>
+          <span>Nuevo Usuario</span>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Offcanvas de Filtros -->
+    <div
+      class="offcanvas offcanvas-end"
+      tabindex="-1"
+      id="filtrosOffcanvas"
+      aria-labelledby="filtrosOffcanvasLabel"
+    >
+      <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold" id="filtrosOffcanvasLabel">
+          Filtros Avanzados
+        </h5>
+        <button
+          type="button"
+          class="btn-close text-reset"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="offcanvas-body p-0">
+        <div class="p-3">
+          <!-- Filtros de Estado -->
+          <div class="card mb-3 border-0 shadow-sm">
+            <div class="card-header bg-body-tertiary border-0 py-3">
+              <h6 class="mb-0 fw-bold">Estado del Usuario</h6>
+            </div>
+            <div class="card-body">
+              <div class="form-check form-switch mb-3">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="filter-inactivos"
+                />
+                <label class="form-check-label" for="filter-inactivos"
+                  >Mostrar usuarios inactivos</label
+                >
+              </div>
+              <div class="form-check form-switch mb-3">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="filter-staff"
+                />
+                <label class="form-check-label" for="filter-staff"
+                  >Mostrar solo usuarios staff</label
+                >
+              </div>
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="filter-superusers"
+                />
+                <label class="form-check-label" for="filter-superusers"
+                  >Mostrar solo superusuarios</label
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtros por Columnas -->
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-body-tertiary border-0 py-3">
+              <h6 class="mb-0 fw-bold">Filtros por Columnas</h6>
+            </div>
+            <div class="card-body">
+              <!-- Filtro para Username -->
+              <div class="mb-3">
+                <label for="filter-username" class="form-label fw-medium"
+                  >Nombre de Usuario</label
+                >
+                <select
+                  class="form-select select2-multiple"
+                  id="filter-username"
+                  multiple="multiple"
+                >
+                  {% for username in usernames_usuarios %}
+                  <option value="{{ username }}">{{ username }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Filtro para Nombre -->
+              <div class="mb-3">
+                <label for="filter-first-name" class="form-label fw-medium"
+                  >Nombre</label
+                >
+                <select
+                  class="form-select select2-multiple"
+                  id="filter-first-name"
+                  multiple="multiple"
+                >
+                  {% for first_name in first_names_usuarios %}
+                  <option value="{{ first_name }}">{{ first_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Filtro para Apellido -->
+              <div class="mb-3">
+                <label for="filter-last-name" class="form-label fw-medium"
+                  >Apellido</label
+                >
+                <select
+                  class="form-select select2-multiple"
+                  id="filter-last-name"
+                  multiple="multiple"
+                >
+                  {% for last_name in last_names_usuarios %}
+                  <option value="{{ last_name }}">{{ last_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Filtro para Email -->
+              <div class="mb-3">
+                <label for="filter-email" class="form-label fw-medium"
+                  >Email</label
+                >
+                <select
+                  class="form-select select2-multiple"
+                  id="filter-email"
+                  multiple="multiple"
+                >
+                  {% for email in emails_usuarios %}
+                  <option value="{{ email }}">{{ email }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Filtro para Teléfono -->
+              <div class="mb-3">
+                <label for="filter-telefono" class="form-label fw-medium"
+                  >Teléfono</label
+                >
+                <select
+                  class="form-select select2-multiple"
+                  id="filter-telefono"
+                  multiple="multiple"
+                >
+                  {% for telefono in telefonos_usuarios %}
+                  <option value="{{ telefono }}">{{ telefono }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Filtro para Grupos -->
+              <div class="mb-3">
+                <label for="filter-grupos" class="form-label fw-medium"
+                  >Grupos</label
+                >
+                <select
+                  class="form-select select2-multiple"
+                  id="filter-grupos"
+                  multiple="multiple"
+                >
+                  {% for grupo in grupos %}
+                  <option value="{{ grupo.name }}">{{ grupo.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Filtro para Fecha de Registro -->
+              <div class="mb-3">
+                <label class="form-label fw-medium">Fecha de Registro</label>
+                <div class="row g-2">
+                  <div class="col">
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="filter-fecha-desde"
+                      placeholder="Desde"
+                    />
+                  </div>
+                  <div class="col">
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="filter-fecha-hasta"
+                      placeholder="Hasta"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción - Sticky en la parte inferior -->
+        <div class="sticky-bottom p-3 bg-body border-top">
+          <div class="d-grid gap-2">
+            <button class="btn btn-primary" id="btn-aplicar-filtros">
+              Aplicar Filtros
+            </button>
+            <button class="btn btn-danger" id="btn-limpiar-filtros">
+              Limpiar Todos
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table id="my-table" class="table" data-toggle="data-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              <th>Grupos</th>
+              <th>Estado</th>
+              <th>Imagen</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <th>Usuario</th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              <th>Grupos</th>
+              <th>Estado</th>
+              <th>Imagen</th>
+              <th>Acciones</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div
+  class="modal fade"
+  id="confirmModal"
+  tabindex="-1"
+  aria-labelledby="confirmModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" id="confirmForm">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmModalLabel">Confirmar Acción</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Cerrar"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage">¿Estás seguro de que deseas continuar?</p>
+          <div class="mb-3">
+            <label for="passwordConfirm" class="form-label"
+              >Ingresa tu contraseña para confirmar:</label
+            >
+            <div class="password-wrapper">
+              <input
+                type="password"
+                name="password"
+                class="form-control"
+                id="passwordConfirm"
+                required
+              />
+              <img
+                src="{% static 'assets/images/svg/eye.svg' %}"
+                class="password-toggle"
+                data-target="passwordConfirm"
+                alt="Mostrar contraseña"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Confirmar</button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block custom_js %} {% endblock %} {% block pagina_js %}
+<script>
+  $(document).ready(function () {
+     // Verificar que Select2 esté disponible antes de inicializarlo
+     if (typeof $.fn.select2 !== 'undefined') {
+        // Inicializar Select2 con tema Bootstrap 5
+        $('.select2-multiple').select2({
+           theme: 'bootstrap-5',
+           placeholder: "Seleccione opciones",
+           allowClear: true,
+           width: '100%',
+           closeOnSelect: false,
+           dropdownParent: $('#filtrosOffcanvas')
+        });
+     } else {
+        // Fallback: usar select nativo si Select2 no está disponible
+        $('.select2-multiple').addClass('form-select');
+     }
+
+     // Objeto para almacenar los filtros actuales
+     let filters = {
+        showInactivos: false,
+        showStaff: false,
+        showSuperusers: false,
+        usernames: [],
+        firstNames: [],
+        lastNames: [],
+        emails: [],
+        telefonos: [],
+        grupos: [],
+        fechaDesde: null,
+        fechaHasta: null
+     };
+
+     // Inicializar DataTable
+     var table = $('#my-table').DataTable({
+        "ajax": {
+           "url": "{% url 'usuario_ajax' %}",
+           "type": "GET",
+           "cache": false,
+           "data": function (d) {
+              // Agregar todos los filtros al request
+              d.show_inactivos = $('#filter-inactivos').is(':checked');
+              d.show_staff = $('#filter-staff').is(':checked');
+              d.show_superusers = $('#filter-superusers').is(':checked');
+              d.usernames = filters.usernames;
+              d.first_names = filters.firstNames;
+              d.last_names = filters.lastNames;
+              d.emails = filters.emails;
+              d.telefonos = filters.telefonos;
+              d.grupos = filters.grupos;
+              d.fecha_desde = filters.fechaDesde;
+              d.fecha_hasta = filters.fechaHasta;
+           },
+           "dataSrc": function (json) {
+              return json.data || [];
+           }
+        },
+        "processing": true,
+        "serverSide": true,
+        "responsive": true,
+        "autoWidth": false,
+        "order": [[0, "asc"]], // Ordenar por username por defecto
+        "dom": '<"row align-items-center"<"col-md-6" l><"col-md-6" f>><"table-responsive my-3" rt><"row align-items-center" <"col-md-6" i><"col-md-6" p>><"clear">',
+        "language": {
+           "url": "{% static 'assets/js/nuevos/es-ES.json' %}"
+        },
+        "columns": [
+           {
+              "data": "username",
+              "render": function (data, type, row) {
+                 return data || 'N/A';
+              }
+           },
+           {
+              "data": "email",
+              "render": function (data, type, row) {
+                 return data || 'N/A';
+              }
+           },
+           {
+              "data": "telefono",
+              "render": function (data, type, row) {
+                 return data || 'N/A';
+              }
+           },
+           {
+              "data": "grupos",
+              "render": function (data, type, row) {
+                 return data || 'N/A';
+              }
+           },
+           {
+              "data": "is_active",
+              "render": function (data, type, row) {
+                 if (row.is_active) {
+                    return '<span class="badge bg-primary">Activo</span>';
+                 } else {
+                    return '<span class="badge bg-danger">Inactivo</span>';
+                 }
+              }
+           },
+
+           {
+              "data": "imagen_url",
+              "orderable": false,  // Deshabilitar ordenamiento para imagen
+              "render": function (data) {
+                 return `<img class="bg-soft-primary rounded img-fluid avatar-40" src="${data}" loading="lazy" alt="Imagen de usuario">`;
+              }
+           },
+           {
+              "data": "id",
+              "orderable": false,  // Deshabilitar ordenamiento para acciones
+              "render": function (data, type, row) {
+                 let buttons = '';
+                 buttons += `
+                       <a href="/usuarios/detalle/${data}/" type="button" class="btn btn-sm btn-info" href="/clientes/${data}/" aria-label="ver detalles" title="ver detalles ">
+                           Ver detalles
+                       </a>
+                   `;
+                 {% if perms.inventario.can_suspend_user %}
+                 buttons += `
+                       <button type="button"
+                               class="btn btn-sm ${row.is_active ? 'btn-warning' : 'btn-success'} me-1"
+                               data-bs-toggle="modal"
+                               data-bs-target="#confirmModal"
+                               data-user-id="${data}"
+                               data-user-name="${row.username}"
+                               data-user-active="${row.is_active}">
+                           ${row.is_active ? '<i class="fas fa-user-slash"></i>' : '<i class="fas fa-user-check"></i>'}
+                           ${row.is_active ? 'Suspender' : 'Activar'}
+                       </button>
+                   `;
+                 {% endif %}
+
+
+
+                 return buttons;
+              }
+           }
+        ]
+     });
+
+     // Eventos directos para los switches
+     $('#filter-inactivos, #filter-staff, #filter-superusers').change(function () {
+        table.ajax.reload(null, false); // Recarga sin resetear paginación
+     });
+
+     // Función para aplicar filtros
+     function aplicarFiltros() {
+        // Actualizar objeto filters con los valores actuales
+        filters = {
+           showInactivos: $('#filter-inactivos').is(':checked'),
+           showStaff: $('#filter-staff').is(':checked'),
+           showSuperusers: $('#filter-superusers').is(':checked'),
+           usernames: $('#filter-username').val() || [],
+           firstNames: $('#filter-first-name').val() || [],
+           lastNames: $('#filter-last-name').val() || [],
+           emails: $('#filter-email').val() || [],
+           telefonos: $('#filter-telefono').val() || [],
+           grupos: $('#filter-grupos').val() || [],
+           fechaDesde: $('#filter-fecha-desde').val() || null,
+           fechaHasta: $('#filter-fecha-hasta').val() || null
+        };
+
+        // Recargar la tabla con los nuevos filtros
+        table.ajax.reload();
+     }
+
+     // Evento para el botón aplicar filtros
+     $('#btn-aplicar-filtros').on('click', aplicarFiltros);
+
+     // Evento para limpiar filtros
+     $('#btn-limpiar-filtros').on('click', function () {
+        // Resetear controles
+        $('#filter-inactivos, #filter-staff, #filter-superusers').prop('checked', false);
+        $('.select2-multiple').val(null).trigger('change');
+        $('input[type="date"]').val('');
+
+        // Resetear objeto filters
+        filters = {
+           showInactivos: false,
+           showStaff: false,
+           showSuperusers: false,
+           usernames: [],
+           firstNames: [],
+           lastNames: [],
+           emails: [],
+           telefonos: [],
+           grupos: [],
+           fechaDesde: null,
+           fechaHasta: null
+        };
+
+        // Recargar tabla sin filtros
+        table.ajax.reload();
+     });
+
+     // Permitir aplicar filtros con Enter
+     $('.form-control').keypress(function (e) {
+        if (e.which === 13) {
+           aplicarFiltros();
+
+           // Cerrar el offcanvas después de aplicar
+           var offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('filtrosOffcanvas'));
+           offcanvas.hide();
+        }
+     });
+
+
+
+     // Inicializar tooltips
+     $('[data-bs-toggle="tooltip"]').tooltip();
+
+  });
+
+
+
+  // Configurar modal de confirmación
+  const modal = document.getElementById('confirmModal');
+  const form = document.getElementById('confirmForm');
+  const message = document.getElementById('confirmMessage');
+
+  modal.addEventListener('show.bs.modal', function (event) {
+     const button = event.relatedTarget;
+     const userId = button.getAttribute('data-user-id');
+     const userName = button.getAttribute('data-user-name');
+     const isActive = button.getAttribute('data-user-active') === 'true';
+
+     // Cambia el mensaje del modal
+     message.textContent = isActive
+        ? `¿Estás seguro de que deseas suspender al usuario "${userName}"?`
+        : `¿Estás seguro de que deseas activar al usuario "${userName}"?`;
+
+     // Cambia la acción del formulario
+     form.action = `/usuarios/toggle-activo/${userId}/`;
+  });
+
+  // Toggle de contraseña para el modal de confirmación
+  document.addEventListener('DOMContentLoaded', function () {
+     document.querySelectorAll('.password-toggle').forEach(function (toggle) {
+        toggle.addEventListener('click', function () {
+           const targetId = this.getAttribute('data-target');
+           const passwordInput = document.getElementById(targetId);
+
+           if (passwordInput.type === 'password') {
+              passwordInput.type = 'text';
+              this.src = "{% static 'assets/images/svg/eye-slash.svg' %}";
+              this.alt = 'Ocultar contraseña';
+           } else {
+              passwordInput.type = 'password';
+              this.src = "{% static 'assets/images/svg/eye.svg' %}";
+              this.alt = 'Mostrar contraseña';
+           }
+        });
+     });
+  });
+</script>
+
+{% endblock %}

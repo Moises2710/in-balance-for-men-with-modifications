@@ -1,0 +1,81 @@
+/* Estilos base para Select2 adaptados a Hope-UI */
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 0.25rem;
+    min-height: 38px;
+    padding: 0.5rem 1rem;
+    font-family: "Inter", sans-serif;
+    font-size: 1rem;
+    color: #8A92A6;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+.select2-container--default .select2-selection--single {
+    height: 38px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #8A92A6;
+    line-height: 1.5;
+    padding-left: 0;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+    right: 8px;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #3a57e8;
+    border: 1px solid #2e46ba;
+    border-radius: 0.25rem;
+    color: #fff;
+    padding: 0 0.5rem;
+    margin-right: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #fff;
+    margin-right: 0.25rem;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #9dabf4;
+    outline: 0;
+    box-shadow: 0 0 0 0, 0 .125rem .25rem 0rem rgba(58,87,232,.15);
+}
+
+/* Dropdown styles */
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #3a57e8;
+    color: white;
+}
+
+.select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: #ebeefd;
+    color: #344ed1;
+}
+
+.select2-dropdown {
+    border: 1px solid #eee;
+    border-radius: 0.25rem;
+    box-shadow: 0 10px 30px 0 rgba(17, 38, 146, 0.05);
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #eee;
+    border-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+    color: #8A92A6;
+}
+
+/* Para selects deshabilitados */
+.select2-container--default.select2-container--disabled .select2-selection--single,
+.select2-container--default.select2-container--disabled .select2-selection--multiple {
+    background-color: #e9ecef;
+    opacity: 1;
+}

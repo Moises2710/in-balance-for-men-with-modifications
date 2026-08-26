@@ -1,0 +1,232 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Devolución #{{ devolucion.id }}{% endblock %}
+
+{% block custom_css %}
+<link href="{% static 'assets/css/nuevos/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block pagina_css %}
+<style>
+  .table-productos {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .table-productos thead {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1;
+  }
+
+  .estado-badge {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .devolucion-item {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #f8f9fa;
+  }
+
+  .devolucion-item:hover {
+    background-color: #e9ecef;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="col-12 col-md-8">
+  <div class="card">
+    <div
+      class="card-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+      <div class="header-title mb-2 mb-md-0">
+        <h4 class="card-title m-0">Detalles de la Devolución #{{ devolucion.id }}</h4>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'devolucion_list' %}" class="btn btn-primary">Volver</a>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="row p-3">
+        <div class="col-md-6">
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Fecha:</strong>
+            <span>{{ devolucion.fecha|date:"d/m/Y" }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Cliente:</strong>
+            <span>
+              {% if cliente %}
+              {{ cliente.nombre }}{% if cliente.apellido %} {{ cliente.apellido }}{% endif %}
+              {% else %}
+              <span class="text-muted">No registrado</span>
+              {% endif %}
+            </span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Total Devolución:</strong>
+            <span class="fw-bold text-danger">${{ devolucion.total|floatformat:2 }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Monto Reembolsado:</strong>
+            <span class="fw-bold text-success">${{ devolucion.reembolsado|floatformat:2|default:"0.00" }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <strong>Total Productos:</strong>
+            <span class="fw-bold text-info">{{ total_productos }} unidades</span>
+          </div>
+        </div>
+        {% if devolucion.motivo %}
+        <div class="col-md-12">
+          <div class="mb-2">
+            <strong>Motivo:</strong>
+            <textarea class="form-control mt-1" rows="3" readonly
+              style="resize: none; background-color: #f8f9fa;">{{ devolucion.motivo }}</textarea>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Productos Devueltos -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Productos Devueltos</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive table-productos">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Código</th>
+              <th>Descripción</th>
+              <th>Cantidad</th>
+              <th>Estado</th>
+              <th>Precio Unit.</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for detalle in detalles %}
+            <tr>
+              <td>
+                <strong>{{ detalle.id_detalle_venta.producto.codigo }}</strong>
+              </td>
+              <td>
+                {{ detalle.id_detalle_venta.producto.descripcion }}<br />
+                <small class="text-muted">
+                  {{ detalle.id_detalle_venta.producto.tipo }} -
+                  {{ detalle.id_detalle_venta.producto.marca }} -
+                  {{ detalle.id_detalle_venta.producto.color }} -
+                  {{ detalle.id_detalle_venta.producto.talla }}
+                </small>
+              </td>
+              <td class="text-center">{{ detalle.cantidad_producto }}</td>
+              <td class="text-center">
+                {% if detalle.danado %}
+                <span class="badge bg-danger">Dañado (Merma)</span>
+                {% else %}
+                <span class="badge bg-success">Buen Estado (Stock)</span>
+                {% endif %}
+              </td>
+              <td>
+                ${{ detalle.id_detalle_venta.precio_unitario_final|floatformat:2 }}
+              </td>
+              <td><strong>${{ detalle.subtotal|floatformat:2 }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted">
+                No hay productos devueltos registrados
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="col-12 col-md-4">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0">Información de la Venta Original</h5>
+      <a href="{% url 'venta_detail' venta.id %}" class="btn btn-sm btn-outline-primary">
+        <i class="btn-inner">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+        </i>
+        Ver Venta
+      </a>
+    </div>
+    <div class="card-body">
+      <div class="devolucion-item">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="mb-0">Venta #{{ venta.id }}</h6>
+          <small class="text-muted">{{ venta.fecha|date:"d/m/Y H:i" }}</small>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <strong>Total Original:</strong><br />
+            <span class="text-primary">${{ venta.total|floatformat:2 }}</span>
+          </div>
+          <div class="col-6">
+            <strong>Total Ajustado:</strong><br />
+            <span class="text-info">${{ venta.total_ajustado|floatformat:2 }}</span>
+          </div>
+        </div>
+        <div class="row mt-2">
+          <div class="col-6">
+            <strong>Total Pagado:</strong><br />
+            <span class="text-success">${{ total_pagado|floatformat:2 }}</span>
+          </div>
+          <div class="col-6">
+            <strong>Saldo Pendiente:</strong><br />
+            <span class="{% if saldo_pendiente > 0 %}text-danger{% else %}text-success{% endif %}">
+              ${{ saldo_pendiente|floatformat:2 }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de la Devolución -->
+      <div class="border-top pt-3 mt-3">
+        <h6 class="mb-3">Resumen de la Devolución</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <strong>Total Devolución:</strong>
+          <strong class="text-danger">${{ devolucion.total|floatformat:2 }}</strong>
+        </div>
+        {% if devolucion.reembolsado %}
+        <div class="d-flex justify-content-between mb-2">
+          <strong>Monto Reembolsado:</strong>
+          <strong class="text-success">${{ devolucion.reembolsado|floatformat:2 }}</strong>
+        </div>
+        {% endif %}
+        <div class="d-flex justify-content-between">
+          <strong>Total Productos:</strong>
+          <strong class="text-info">{{ total_productos }} unidades</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+{% endblock %}
+
+{% block custom_js %}
+<script src="{% static 'assets/js/plugins/select2.min.js' %}"></script>
+{% endblock %}

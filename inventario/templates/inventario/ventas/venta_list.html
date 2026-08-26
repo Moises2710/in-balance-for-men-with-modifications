@@ -1,0 +1,889 @@
+{% extends 'inventario/base.html' %} {% load static %} {% block title %}Lista de
+Ventas{% endblock %} {% block custom_css %}
+<link href="{% static 'assets/css/nuevos/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet" />
+{% endblock %} {% block pagina_css %} {% endblock %} {% block content %}
+<div class="col-sm-12">
+   <div class="card">
+      <div class="card-header d-flex justify-content-between flex-wrap">
+         <div class="header-title d-flex align-items-center gap-3">
+            <h4 class="card-title mb-0" id="titulo-tabla">Lista de Ventas</h4>
+            {% if can_view_comisiones %}
+            <!-- Switch para alternar entre ventas y comisiones -->
+            <div class="form-check form-switch">
+               <input class="form-check-input" type="checkbox" role="switch" id="switch-comisiones" />
+               <label class="form-check-label" for="switch-comisiones">
+                  <span id="switch-text">Ver Comisiones</span>
+               </label>
+            </div>
+            {% endif %}
+         </div>
+         <div class="d-flex gap-2">
+            <button class="btn btn-primary btn-icon" type="button" data-bs-toggle="offcanvas"
+               data-bs-target="#filtrosOffcanvas">
+               <i class="btn-inner">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                     <path d="M10.33 16.5928H4.0293" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                     <path d="M13.1406 6.90042H19.4413" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                     <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M8.72629 6.84625C8.72629 5.5506 7.66813 4.5 6.36314 4.5C5.05816 4.5 4 5.5506 4 6.84625C4 8.14191 5.05816 9.19251 6.36314 9.19251C7.66813 9.19251 8.72629 8.14191 8.72629 6.84625Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                     <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M20.0002 16.5538C20.0002 15.2581 18.9429 14.2075 17.6379 14.2075C16.3321 14.2075 15.2739 15.2581 15.2739 16.5538C15.2739 17.8494 16.3321 18.9 17.6379 18.9C18.9429 18.9 20.0002 17.8494 20.0002 16.5538Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+               </i>
+               Filtros
+            </button>
+            <a href="{% url 'venta_create' %}" class="btn btn-primary btn-icon">
+               <i class="btn-inner">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+               </i>
+               <span>Nueva Venta</span>
+            </a>
+         </div>
+      </div>
+
+      <!-- Offcanvas de Filtros -->
+      <div class="offcanvas offcanvas-end" tabindex="-1" id="filtrosOffcanvas" aria-labelledby="filtrosOffcanvasLabel">
+         <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold" id="filtrosOffcanvasLabel">
+               Filtros Avanzados
+            </h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+         </div>
+         <div class="offcanvas-body p-0">
+            <div class="p-3">
+               <!-- Filtros de Estado -->
+               <div class="card mb-3 border-0 shadow-sm">
+                  <div class="card-header bg-body-tertiary border-0 py-3">
+                     <h6 class="mb-0 fw-bold">Estado de la Venta</h6>
+                  </div>
+                  <div class="card-body">
+                     <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="filter-solo-no-pagadas" />
+                        <label class="form-check-label" for="filter-solo-no-pagadas">Ver solo las no pagadas</label>
+                     </div>
+                     <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="filter-solo-no-entregadas" />
+                        <label class="form-check-label" for="filter-solo-no-entregadas">Ver solo las no
+                           entregadas</label>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Filtros por Columnas -->
+               <div class="card border-0 shadow-sm">
+                  <div class="card-header bg-body-tertiary border-0 py-3">
+                     <h6 class="mb-0 fw-bold">Filtros por Columnas</h6>
+                  </div>
+                  <div class="card-body">
+                     <!-- Filtro para ID -->
+                     <div class="mb-3">
+                        <label for="filter-id" class="form-label fw-medium">ID de Venta</label>
+                        <input type="text" class="form-control" id="filter-id" placeholder="Buscar por ID" />
+                     </div>
+
+                     <!-- Filtro para Fecha -->
+                     <div class="mb-3">
+                        <label class="form-label fw-medium">Fecha</label>
+                        <div class="row g-2">
+                           <div class="col">
+                              <div class="input-group">
+                                 <span class="input-group-text">Desde</span>
+                                 <input type="date" class="form-control" id="filter-fecha-desde"
+                                    aria-describedby="Desde" />
+                              </div>
+                           </div>
+                           <div class="col">
+                              <div class="input-group">
+                                 <span class="input-group-text">Hasta</span>
+                                 <input type="date" class="form-control" id="filter-fecha-hasta"
+                                    aria-describedby="Hasta" />
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Filtro para Cliente -->
+                     <div class="mb-3">
+                        <label for="filter-cliente" class="form-label fw-medium">Cliente</label>
+                        <input type="text" class="form-control" id="filter-cliente"
+                           placeholder="Buscar por nombre o identificación" />
+                     </div>
+
+                     <!-- Filtro para Total -->
+                     <div class="mb-3">
+                        <label class="form-label fw-medium">Total</label>
+                        <div class="row g-2">
+                           <div class="col">
+                              <input type="number" step="0.01" class="form-control" id="filter-total-min"
+                                 placeholder="Mínimo" />
+                           </div>
+                           <div class="col">
+                              <input type="number" step="0.01" class="form-control" id="filter-total-max"
+                                 placeholder="Máximo" />
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Filtro para Descuento -->
+                     <div class="mb-3">
+                        <label class="form-label fw-medium">Descuento</label>
+                        <div class="row g-2">
+                           <div class="col">
+                              <input type="number" step="0.01" class="form-control" id="filter-descuento-min"
+                                 placeholder="Mínimo" />
+                           </div>
+                           <div class="col">
+                              <input type="number" step="0.01" class="form-control" id="filter-descuento-max"
+                                 placeholder="Máximo" />
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Filtros específicos para Comisiones (ocultos por defecto) -->
+               <div class="card mb-3 border-0 shadow-sm" id="filtros-comisiones" style="display: none">
+                  <div class="card-header bg-body-tertiary border-0 py-3">
+                     <h6 class="mb-0 fw-bold">Estado de Comisiones</h6>
+                  </div>
+                  <div class="card-body">
+                     <div class="mb-3">
+                        <label for="filter-estado-comision" class="form-label fw-medium">Estado de Comisión</label>
+                        <select class="form-select" id="filter-estado-comision">
+                           <option value="">Todos los estados</option>
+                           <option value="pendiente">Pendiente</option>
+                           <option value="pagado">Pagado</option>
+                           <option value="denegado">Denegado</option>
+                        </select>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Filtros por Columnas para Comisiones (ocultos por defecto) -->
+               <div class="card border-0 shadow-sm" id="filtros-comisiones-columnas" style="display: none">
+                  <div class="card-header bg-body-tertiary border-0 py-3">
+                     <h6 class="mb-0 fw-bold">Filtros por Columnas - Comisiones</h6>
+                  </div>
+                  <div class="card-body">
+                     <!-- Filtro para Vendedor -->
+                     <div class="mb-3">
+                        <label for="filter-vendedor" class="form-label fw-medium">Vendedor</label>
+                        <input type="text" class="form-control" id="filter-vendedor"
+                           placeholder="Buscar por nombre de vendedor" />
+                     </div>
+
+                     <!-- Filtro para Fecha (reutilizar los existentes) -->
+                     <div class="mb-3">
+                        <label class="form-label fw-medium">Fecha</label>
+                        <div class="row g-2">
+                           <div class="col">
+                              <div class="input-group">
+                                 <span class="input-group-text">Desde</span>
+                                 <input type="date" class="form-control" id="filter-fecha-desde-comision"
+                                    aria-describedby="Desde" />
+                              </div>
+                           </div>
+                           <div class="col">
+                              <div class="input-group">
+                                 <span class="input-group-text">Hasta</span>
+                                 <input type="date" class="form-control" id="filter-fecha-hasta-comision"
+                                    aria-describedby="Hasta" />
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Filtro para Monto de Comisión -->
+                     <div class="mb-3">
+                        <label class="form-label fw-medium">Monto de Comisión</label>
+                        <div class="row g-2">
+                           <div class="col">
+                              <input type="number" step="0.01" class="form-control" id="filter-comision-min"
+                                 placeholder="Mínimo" />
+                           </div>
+                           <div class="col">
+                              <input type="number" step="0.01" class="form-control" id="filter-comision-max"
+                                 placeholder="Máximo" />
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Botones de Acción - Sticky en la parte inferior -->
+            <div class="sticky-bottom p-3 bg-body border-top">
+               <div class="d-grid gap-2">
+                  <button class="btn btn-primary" id="btn-aplicar-filtros">
+                     Aplicar Filtros
+                  </button>
+                  <button class="btn btn-danger" id="btn-limpiar-filtros">
+                     Limpiar Todos
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div class="card-body">
+         <div class="table-responsive">
+            <table id="my-table" class="table" data-toggle="data-table">
+               <thead>
+                  <tr>
+                     <th>ID</th>
+                     <th>Fecha</th>
+                     <th>Cliente</th>
+                     <th>Total</th>
+                     <th>Descuento</th>
+                     <th>Estado</th>
+                     <th>Entregado</th>
+                     <th>Acciones</th>
+                  </tr>
+               </thead>
+               <tbody></tbody>
+               <tfoot>
+                  <tr>
+                     <th>ID</th>
+                     <th>Fecha</th>
+                     <th>Cliente</th>
+                     <th>Total</th>
+                     <th>Descuento</th>
+                     <th>Estado</th>
+                     <th>Entregado</th>
+                     <th>Acciones</th>
+                  </tr>
+               </tfoot>
+            </table>
+         </div>
+      </div>
+
+      <!-- DataTable de Comisiones (oculta por defecto) -->
+      <div class="card-body" id="tabla-comisiones" style="display: none">
+         <div class="table-responsive">
+            <table id="my-table-comisiones" class="table" data-toggle="data-table">
+               <thead>
+                  <tr>
+                     <th>Vendedor</th>
+                     <th>Fecha de Venta</th>
+                     <th>ID de Venta</th>
+                     <th>Total de Venta</th>
+                     <th>Comisión</th>
+                     <th>Estado</th>
+                     <th>Acciones</th>
+                  </tr>
+               </thead>
+               <tbody></tbody>
+               <tfoot>
+                  <tr>
+                     <th>Vendedor</th>
+                     <th>Fecha de Venta</th>
+                     <th>ID de Venta</th>
+                     <th>Total de Venta</th>
+                     <th>Comisión</th>
+                     <th>Estado</th>
+                     <th>Acciones</th>
+                  </tr>
+               </tfoot>
+            </table>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Modal de Confirmación para Cambiar Estado de Entrega -->
+<div class="modal fade" id="modalConfirmarEntrega" tabindex="-1" aria-labelledby="modalConfirmarEntregaLabel"
+   aria-hidden="true">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" id="modalConfirmarEntregaLabel">
+               Confirmar Cambio de Estado
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+         <div class="modal-body">
+            <p>
+               ¿Está seguro que desea cambiar el estado de entrega de esta venta?
+            </p>
+            <p class="text-muted small" id="mensajeEstadoEntrega"></p>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+               Cancelar
+            </button>
+            <a href="#" class="btn btn-primary" id="btnConfirmarEntrega">Confirmar Cambio</a>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Modal para ventas ya pagadas -->
+<div class="modal fade" id="modalVentaPagada" tabindex="-1" aria-labelledby="modalVentaPagadaLabel" aria-hidden="true">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" id="modalVentaPagadaLabel">Venta ya pagada</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+         <div class="modal-body">
+            <div class="text-center">
+               <svg xmlns="http://www.w3.org/2000/svg" class="text mb-3" fill="currentColor" width="64" height="64"
+                  viewBox="0 0 16 16">
+                  <path
+                     d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
+                  <path
+                     d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.55.55 0 0 1-1.1 0z" />
+               </svg>
+               <p class="mb-0">
+                  Esta venta ya está <strong>completamente pagada</strong>.
+               </p>
+               <p class="text-muted small">
+                  No se pueden agregar más pagos a ventas que ya han sido saldadas.
+               </p>
+            </div>
+         </div>
+         <div class="modal-footer justify-content-center">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+               Entendido
+            </button>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Modal para ventas canceladas -->
+<div class="modal fade" id="modalVentaCancelada" tabindex="-1" aria-labelledby="modalVentaCanceladaLabel"
+   aria-hidden="true">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" id="modalVentaCanceladaLabel">
+               Venta cancelada
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+         <div class="modal-body">
+            <div class="text-center">
+               <svg xmlns="http://www.w3.org/2000/svg" class="text mb-3" fill="currentColor" width="64" height="64"
+                  viewBox="0 0 16 16">
+                  <path
+                     d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
+                  <path
+                     d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.55.55 0 0 1-1.1 0z" />
+               </svg>
+               <p class="mb-0">Esta venta está <strong>cancelada</strong>.</p>
+               <p class="text-muted small">
+                  No se pueden agregar más pagos a ventas que han sido devueltas en su
+                  totalidad.
+               </p>
+            </div>
+         </div>
+         <div class="modal-footer justify-content-center">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+               Entendido
+            </button>
+         </div>
+      </div>
+   </div>
+</div>
+
+{% endblock %} {% block custom_js %}
+<script src="{% static 'assets/js/plugins/select2.min.js' %}"></script>
+{% endblock %} {% block pagina_js %}
+<script>
+   // Configurar CSRF token para AJAX
+   function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+         const cookies = document.cookie.split(";");
+         for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+               cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+               break;
+            }
+         }
+      }
+      return cookieValue;
+   }
+
+   $.ajaxSetup({
+      beforeSend: function (xhr, settings) {
+         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+            xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
+         }
+      },
+   });
+
+   $(document).ready(function () {
+      // Variables globales para las tablas
+      let tableVentas = null;
+      let tableComisiones = null;
+      let isComisionesView = false;
+
+      // Objeto para almacenar los filtros actuales de ventas
+      let filtersVentas = {
+         showSoloNoPagadas: false,
+         showSoloNoEntregadas: false,
+         idFilter: "",
+         fechaDesde: "",
+         fechaHasta: "",
+         clienteFilter: "",
+         totalMin: null,
+         totalMax: null,
+         descuentoMin: null,
+         descuentoMax: null,
+      };
+
+      // Objeto para almacenar los filtros actuales de comisiones
+      let filtersComisiones = {
+         estadoComision: "",
+         fechaDesde: "",
+         fechaHasta: "",
+         vendedorFilter: "",
+         comisionMin: null,
+         comisionMax: null,
+      };
+
+      // Función para inicializar DataTable de Ventas
+      function initTableVentas() {
+         if (tableVentas) {
+            tableVentas.destroy();
+         }
+         tableVentas = $("#my-table").DataTable({
+            ajax: {
+               url: "{% url 'venta_ajax' %}",
+               type: "GET",
+               data: function (d) {
+                  // Agregar todos los filtros al request
+                  d.show_solo_no_pagadas = $("#filter-solo-no-pagadas").is(
+                     ":checked"
+                  );
+                  d.show_solo_no_entregadas = $("#filter-solo-no-entregadas").is(
+                     ":checked"
+                  );
+                  d.id_filter = $("#filter-id").val() || "";
+                  d.fecha_desde = $("#filter-fecha-desde").val() || "";
+                  d.fecha_hasta = $("#filter-fecha-hasta").val() || "";
+                  d.cliente_filter = $("#filter-cliente").val() || "";
+                  d.total_min = $("#filter-total-min").val() || "";
+                  d.total_max = $("#filter-total-max").val() || "";
+                  d.descuento_min = $("#filter-descuento-min").val() || "";
+                  d.descuento_max = $("#filter-descuento-max").val() || "";
+               },
+            },
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            autoWidth: false,
+            order: [[0, 'desc']], // Ordenar por ID (columna 0) de mayor a menor
+            dom: '<"row align-items-center"<"col-md-6" l><"col-md-6" f>><"table-responsive my-3" rt><"row align-items-center" <"col-md-6" i><"col-md-6" p>><"clear">',
+            language: {
+               url: "{% static 'assets/js/nuevos/es-ES.json' %}",
+            },
+            columns: [
+               { data: "id" },
+               { data: "fecha" },
+               { data: "cliente" },
+               {
+                  data: "total",
+                  className: "text-end",
+                  render: function (data) {
+                     return `$${parseFloat(data).toFixed(2)}`;
+                  },
+               },
+               {
+                  data: "descuento",
+                  className: "text-end",
+                  render: function (data) {
+                     return `$${parseFloat(data).toFixed(2)}`;
+                  },
+               },
+               {
+                  data: "estado",
+                  render: function (data) {
+                     if (data === "cancelada") {
+                        return `<span class="badge rounded-pill bg-secondary">Cancelada</span>`;
+                     } else if (data === "pagada") {
+                        return `<span class="badge rounded-pill bg-success">Pagada</span>`;
+                     } else {
+                        return `<span class="badge rounded-pill bg-danger">No pagada</span>`;
+                     }
+                  },
+               },
+               {
+                  data: "entrega",
+                  render: function (data) {
+                     return `<span class="badge rounded-pill ${data ? "bg-success" : "bg-warning"
+                        }">
+                            ${data ? "Entregado" : "Pendiente"}</span>`;
+                  },
+               },
+               {
+                  data: "id",
+                  orderable: false, // Deshabilitar ordenamiento para acciones
+                  render: function (data, type, row) {
+                     return `
+                    <div class="flex align-items-center list-user-action">
+                        <a type="button" class="btn btn-sm btn-icon btn-info" data-bs-toggle="tooltip" data-bs-placement="top" href="/venta/detalle/${data}/" aria-label="ver detalles" title="Ver detalles">
+                            <span class="btn-inner">
+                                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">                                    
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15.1614 12.0531C15.1614 13.7991 13.7454 15.2141 11.9994 15.2141C10.2534 15.2141 8.83838 13.7991 8.83838 12.0531C8.83838 10.3061 10.2534 8.89111 11.9994 8.89111C13.7454 8.89111 15.1614 10.3061 15.1614 12.0531Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M11.998 19.355C15.806 19.355 19.289 16.617 21.25 12.053C19.289 7.48898 15.806 4.75098 11.998 4.75098H12.002C8.194 4.75098 4.711 7.48898 2.75 12.053C4.711 16.617 8.194 19.355 12.002 19.355H11.998Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>                                
+                                </svg>                                                                    
+                            </span>
+                        </a>
+                        <button class="btn btn-sm btn-icon btn-soft-warning" data-bs-toggle="tooltip" data-bs-placement="top" onclick="abrirModalConfirmarEntrega(${data}, ${row.entrega
+                        })" aria-label="cambiar estado entrega" title="Cambiar estado entrega">
+                            <span class="btn-inner">
+                                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20.1642 7.1603H6.54639" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M16.0681 3.0827L20.1648 7.1605L16.0681 11.2383" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M3.83276 16.889H17.4505" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M7.92894 20.9165L3.83228 16.8387L7.92894 12.7609" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <button class="btn btn-sm btn-icon btn-success" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Registrar pagos" title="Registrar pagos" onclick="abrirModalRegistrarPago(${data}, ${row.estado === "pagada"
+                        }, ${row.estado === "cancelada"})">
+                           <span class="btn-inner">
+                              <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                 <path d="M12 22.9199C17.5228 22.9199 22 18.4428 22 12.9199C22 7.39707 17.5228 2.91992 12 2.91992C6.47715 2.91992 2 7.39707 2 12.9199C2 18.4428 6.47715 22.9199 12 22.9199Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                 <path d="M12.7002 17.1099V18.21C12.7002 18.3877 12.6296 18.5582 12.504 18.6838C12.3783 18.8095 12.2079 18.8799 12.0302 18.8799C11.8525 18.8799 11.6821 18.8095 11.5565 18.6838C11.4308 18.5582 11.3602 18.3877 11.3602 18.21V17.0801C10.9165 17.0072 10.4917 16.8468 10.1106 16.6082C9.72943 16.3695 9.39958 16.0573 9.14023 15.6899C9.04577 15.57 8.99311 15.4226 8.99023 15.27C8.99014 15.1834 9.00762 15.0975 9.04164 15.0178C9.07566 14.9382 9.12551 14.8662 9.18816 14.8064C9.2508 14.7466 9.32494 14.7 9.40608 14.6697C9.48723 14.6393 9.5737 14.6258 9.66023 14.6299C9.74611 14.6294 9.83102 14.648 9.90884 14.6843C9.98667 14.7206 10.0554 14.774 10.1102 14.8401C10.4301 15.258 10.8643 15.574 11.3602 15.75V13.21C10.0302 12.69 9.36023 11.9099 9.36023 10.8999C9.38027 10.3592 9.59279 9.84343 9.95949 9.44556C10.3262 9.04769 10.8229 8.79397 11.3602 8.72998V7.62988C11.3602 7.45219 11.4308 7.2819 11.5565 7.15625C11.6821 7.0306 11.8525 6.95996 12.0302 6.95996C12.2079 6.95996 12.3783 7.0306 12.504 7.15625C12.6296 7.2819 12.7002 7.45219 12.7002 7.62988V8.71997C13.0723 8.77828 13.4289 8.91103 13.7485 9.11035C14.0681 9.30967 14.3442 9.57137 14.5602 9.87988C14.6555 9.99235 14.7117 10.1329 14.7202 10.28C14.7229 10.3657 14.7083 10.451 14.6774 10.531C14.6464 10.611 14.5997 10.684 14.54 10.7456C14.4803 10.8072 14.4088 10.856 14.3298 10.8894C14.2509 10.9228 14.166 10.94 14.0802 10.9399C13.9906 10.9394 13.9022 10.9196 13.8211 10.8816C13.74 10.8436 13.668 10.7884 13.6102 10.72C13.3718 10.4221 13.0574 10.1942 12.7002 10.0601V12.3101L12.9502 12.4099C14.2202 12.9099 15.0102 13.63 15.0102 14.77C14.9954 15.3808 14.7481 15.9629 14.3189 16.3977C13.8897 16.8325 13.3108 17.0871 12.7002 17.1099ZM11.3602 11.73V10.0999C11.1988 10.1584 11.0599 10.2662 10.963 10.408C10.8662 10.5497 10.8162 10.7183 10.8202 10.8899C10.8185 11.0673 10.8688 11.2414 10.9647 11.3906C11.0607 11.5399 11.1981 11.6579 11.3602 11.73ZM13.5502 14.8C13.5502 14.32 13.2202 14.03 12.7002 13.8V15.8C12.9387 15.7639 13.156 15.6427 13.3122 15.459C13.4684 15.2752 13.553 15.0412 13.5502 14.8Z" fill="currentColor"/>
+                              </svg>
+                           </span>
+                        </button>
+                        <a href="/devolucion/crear/${data}/" class="btn btn-sm btn-icon btn-primary" data-bs-toggle="tooltip" title="Crear devolución">
+                           <span class="btn-inner">
+                              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path fill="none" d="M0 0h24v24H0z"></path> <path d="M5.671 4.257c3.928-3.219 9.733-2.995 13.4.672 3.905 3.905 3.905 10.237 0 14.142-3.905 3.905-10.237 3.905-14.142 0A9.993 9.993 0 0 1 2.25 9.767l.077-.313 1.934.51a8 8 0 1 0 3.053-4.45l-.221.166 1.017 1.017-4.596 1.06 1.06-4.596 1.096 1.096zM13 6v2h2.5v2H10a.5.5 0 0 0-.09.992L10 11h4a2.5 2.5 0 1 1 0 5h-1v2h-2v-2H8.5v-2H14a.5.5 0 0 0 .09-.992L14 13h-4a2.5 2.5 0 1 1 0-5h1V6h2z"></path> </g> </g></svg>                      
+                           </span>
+                        </a>
+                    </div>
+                    `;
+                  },
+               },
+            ],
+            drawCallback: function (settings) {
+               // Reinicializar tooltips después de cada redibujado de la tabla
+               $('[data-bs-toggle="tooltip"]').tooltip();
+            },
+         });
+      }
+
+      // Función para inicializar DataTable de Comisiones
+      function initTableComisiones() {
+         if (tableComisiones) {
+            tableComisiones.destroy();
+         }
+         tableComisiones = $("#my-table-comisiones").DataTable({
+            ajax: {
+               url: "{% url 'comision_ajax' %}",
+               type: "GET",
+               data: function (d) {
+                  // Agregar todos los filtros de comisiones al request
+                  d.estado_comision_filter = $("#filter-estado-comision").val() || "";
+                  d.fecha_desde = $("#filter-fecha-desde-comision").val() || "";
+                  d.fecha_hasta = $("#filter-fecha-hasta-comision").val() || "";
+                  d.vendedor_filter = $("#filter-vendedor").val() || "";
+                  d.comision_min = $("#filter-comision-min").val() || "";
+                  d.comision_max = $("#filter-comision-max").val() || "";
+               },
+            },
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            autoWidth: false,
+            dom: '<"row align-items-center"<"col-md-6" l><"col-md-6" f>><"table-responsive my-3" rt><"row align-items-center" <"col-md-6" i><"col-md-6" p>><"clear">',
+            language: {
+               url: "{% static 'assets/js/nuevos/es-ES.json' %}",
+            },
+            columns: [
+               { data: "vendedor" },
+               { data: "fecha" },
+               { data: "venta_id" },
+               {
+                  data: "total_venta",
+                  className: "text-end",
+                  render: function (data) {
+                     return `$${parseFloat(data).toFixed(2)}`;
+                  },
+               },
+               {
+                  data: "comision",
+                  className: "text-end",
+                  render: function (data) {
+                     return `$${parseFloat(data).toFixed(2)}`;
+                  },
+               },
+               {
+                  data: "estado_comision",
+                  orderable: false,
+               },
+               {
+                  data: "acciones",
+                  orderable: false,
+                  visible: true,
+               },
+            ],
+            drawCallback: function (settings) {
+               // Reinicializar tooltips después de cada redibujado de la tabla
+               $('[data-bs-toggle="tooltip"]').tooltip();
+            },
+         });
+      }
+
+      // Función para alternar entre vistas
+      function toggleView() {
+         isComisionesView = $("#switch-comisiones").is(":checked");
+
+         if (isComisionesView) {
+            // Mostrar vista de comisiones
+            $("#titulo-tabla").text("Lista de Comisiones");
+            $("#switch-text").text("Ver Ventas");
+            $("#my-table").closest(".card-body").hide();
+            $("#tabla-comisiones").show();
+
+            // Inicializar tabla de comisiones si no existe
+            if (!tableComisiones) {
+               initTableComisiones();
+            }
+         } else {
+            // Mostrar vista de ventas
+            $("#titulo-tabla").text("Lista de Ventas");
+            $("#switch-text").text("Ver Comisiones");
+            $("#tabla-comisiones").hide();
+            $("#my-table").closest(".card-body").show();
+
+            // Inicializar tabla de ventas si no existe
+            if (!tableVentas) {
+               initTableVentas();
+            }
+         }
+      }
+
+      // Evento para el switch
+      $("#switch-comisiones").on("change", toggleView);
+
+      // Eventos directos para los switches de ventas
+      $("#filter-solo-no-pagadas, #filter-solo-no-entregadas").change(
+         function () {
+            if (tableVentas) {
+               tableVentas.ajax.reload(null, false);
+            }
+         }
+      );
+
+      // Función para aplicar filtros de ventas
+      function aplicarFiltrosVentas() {
+         // Actualizar objeto filters con los valores actuales
+         filtersVentas = {
+            showSoloNoPagadas: $("#filter-solo-no-pagadas").is(":checked"),
+            showSoloNoEntregadas: $("#filter-solo-no-entregadas").is(":checked"),
+            idFilter: $("#filter-id").val() || "",
+            fechaDesde: $("#filter-fecha-desde").val() || "",
+            fechaHasta: $("#filter-fecha-hasta").val() || "",
+            clienteFilter: $("#filter-cliente").val() || "",
+            totalMin: $("#filter-total-min").val() || "",
+            totalMax: $("#filter-total-max").val() || "",
+            descuentoMin: $("#filter-descuento-min").val() || "",
+            descuentoMax: $("#filter-descuento-max").val() || "",
+         };
+
+         // Recargar la tabla con los nuevos filtros
+         if (tableVentas) {
+            tableVentas.ajax.reload();
+         }
+      }
+
+      // Función para aplicar filtros de comisiones
+      function aplicarFiltrosComisiones() {
+         // Actualizar objeto filters con los valores actuales
+         filtersComisiones = {
+            estadoComision: $("#filter-estado-comision").val() || "",
+            fechaDesde: $("#filter-fecha-desde-comision").val() || "",
+            fechaHasta: $("#filter-fecha-hasta-comision").val() || "",
+            vendedorFilter: $("#filter-vendedor").val() || "",
+            comisionMin: $("#filter-comision-min").val() || "",
+            comisionMax: $("#filter-comision-max").val() || "",
+         };
+
+         // Recargar la tabla con los nuevos filtros
+         if (tableComisiones) {
+            tableComisiones.ajax.reload();
+         }
+      }
+
+      // Función para aplicar filtros (detecta qué vista está activa)
+      function aplicarFiltros() {
+         if (isComisionesView) {
+            aplicarFiltrosComisiones();
+         } else {
+            aplicarFiltrosVentas();
+         }
+      }
+
+      // Guardar estado de comisión (solo admins/staff)
+      $("#my-table-comisiones").on("click", ".btn-guardar-estado", function () {
+         const ventaId = $(this).data("venta-id");
+         const estado = $(this)
+            .closest("div")
+            .find(".estado-comision-select")
+            .val();
+         const csrfToken = getCookie("csrftoken");
+         if (!ventaId || !estado || !csrfToken) return;
+
+         $.post({
+            url: '{% url "comision_estado_update" %}',
+            data: {
+               venta_id: ventaId,
+               estado: estado,
+               csrfmiddlewaretoken: csrfToken,
+            },
+         }).done(function (resp) {
+            if (resp && resp.success) {
+               if (tableComisiones) tableComisiones.ajax.reload(null, false);
+            }
+         });
+      });
+
+      // Evento para el botón aplicar filtros
+      $("#btn-aplicar-filtros").on("click", aplicarFiltros);
+
+      // Evento para limpiar filtros
+      $("#btn-limpiar-filtros").on("click", function () {
+         if (isComisionesView) {
+            // Limpiar filtros de comisiones
+            $("#filter-estado-comision").val("");
+            $(
+               "#filter-fecha-desde-comision, #filter-fecha-hasta-comision, #filter-vendedor, #filter-comision-min, #filter-comision-max"
+            ).val("");
+
+            // Resetear objeto filters de comisiones
+            filtersComisiones = {
+               estadoComision: "",
+               fechaDesde: "",
+               fechaHasta: "",
+               vendedorFilter: "",
+               comisionMin: null,
+               comisionMax: null,
+            };
+
+            // Recargar tabla de comisiones
+            if (tableComisiones) {
+               tableComisiones.ajax.reload();
+            }
+         } else {
+            // Limpiar filtros de ventas
+            $("#filter-solo-no-pagadas, #filter-solo-no-entregadas").prop(
+               "checked",
+               false
+            );
+            $(
+               "#filter-id, #filter-fecha-desde, #filter-fecha-hasta, #filter-cliente, #filter-total-min, #filter-total-max, #filter-descuento-min, #filter-descuento-max"
+            ).val("");
+
+            // Resetear objeto filters de ventas
+            filtersVentas = {
+               showSoloNoPagadas: false,
+               showSoloNoEntregadas: false,
+               idFilter: "",
+               fechaDesde: "",
+               fechaHasta: "",
+               clienteFilter: "",
+               totalMin: null,
+               totalMax: null,
+               descuentoMin: null,
+               descuentoMax: null,
+            };
+
+            // Recargar tabla de ventas
+            if (tableVentas) {
+               tableVentas.ajax.reload();
+            }
+         }
+      });
+
+      // Permitir aplicar filtros con Enter
+      $(".form-control").keypress(function (e) {
+         if (e.which === 13) {
+            aplicarFiltros();
+
+            // Cerrar el offcanvas después de aplicar
+            var offcanvas = bootstrap.Offcanvas.getInstance(
+               document.getElementById("filtrosOffcanvas")
+            );
+            offcanvas.hide();
+         }
+      });
+
+      // Inicializar tooltips
+      $('[data-bs-toggle="tooltip"]').tooltip();
+
+      // ========================================
+      // LÓGICA DE CAMBIO DE ESTADO DE ENTREGA
+      // ========================================
+
+      // Inicializar tooltips cuando se abre el modal
+      $("#modalConfirmarEntrega").on("shown.bs.modal", function () {
+         $('[data-bs-toggle="tooltip"]').tooltip();
+      });
+
+      // Función para confirmar el cambio de estado de entrega
+      // --- Lógica de cambio de estado de entrega ---
+      let ventaIdActual = null;
+      let ventaEstadoActual = null;
+      window.abrirModalConfirmarEntrega = function (ventaId, ventaEntregada) {
+         ventaIdActual = ventaId;
+         ventaEstadoActual = ventaEntregada;
+
+         // Actualizar el mensaje con información específica
+         const nuevoEstado = ventaEntregada ? "pendiente de entrega" : "entregada";
+         const mensaje = `Esta acción cambiará el estado de entrega de la venta (ID: ${ventaId}) a ${nuevoEstado}.`;
+         $("#mensajeEstadoEntrega").text(mensaje);
+
+         $("#modalConfirmarEntrega").modal("show");
+      };
+
+      $("#btnConfirmarEntrega").on("click", function () {
+         if (ventaIdActual) {
+            window.location.href = `/venta/toggle-entrega/${ventaIdActual}/`;
+         }
+      });
+
+      // ========================================
+      // LÓGICA PARA REGISTRAR PAGOS
+      // ========================================
+
+      // Función para validar estado de pago antes de registrar nuevo pago
+      window.abrirModalRegistrarPago = function (
+         ventaId,
+         ventaPagada,
+         ventaCancelada
+      ) {
+         if (ventaCancelada) {
+            // Si la venta está cancelada, mostrar modal de advertencia
+            $("#modalVentaCancelada").modal("show");
+         } else if (ventaPagada) {
+            // Si la venta ya está pagada, mostrar modal de advertencia
+            $("#modalVentaPagada").modal("show");
+         } else {
+            // Si la venta no está pagada ni cancelada, redirigir al formulario de pagos
+            window.location.href = `/venta/nuevo-pago/${ventaId}/`;
+         }
+      };
+
+      // Inicializar la tabla de ventas por defecto
+      initTableVentas();
+   });
+</script>
+{% endblock %}

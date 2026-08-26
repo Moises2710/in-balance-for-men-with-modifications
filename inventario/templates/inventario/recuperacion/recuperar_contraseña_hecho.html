@@ -1,0 +1,16 @@
+{% extends 'inventario/base_login.html' %}
+{% block title %}Correo Enviado{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-header">
+            <h2>Correo Enviado</h2>
+        </div>
+        <p>Si el correo ingresado está registrado, recibirás un enlace para restablecer tu contraseña.</p>
+        <div class="login-footer">
+            <a href="{% url 'login' %}">Volver al Login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

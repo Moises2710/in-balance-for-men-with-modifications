@@ -1,0 +1,296 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+
+
+{% block extra_css %}
+<style>
+  .form-check {
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+  }
+  
+  .form-check:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+  }
+  
+  .form-check-input:checked + .form-check-label {
+    font-weight: 500;
+    color: #0d6efd;
+  }
+  
+  .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+  
+  .checkbox-container {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    background-color: #fff;
+  }
+  
+  .checkbox-container:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  }
+  
+  .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+  
+  /* Estilos para la leyenda de tallas */
+  .alert-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+  }
+  
+  .badge {
+    font-size: 0.75em;
+    padding: 0.25em 0.5em;
+  }
+  
+  .badge.bg-primary {
+    background-color: #0d6efd !important;
+  }
+  
+  .badge.bg-success {
+    background-color: #198754 !important;
+  }
+  
+  /* Asegurar que los errores se muestren correctamente */
+  .invalid-feedback {
+    display: block !important;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  
+  .form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  }
+  
+  .form-control.is-valid {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="col-12 mb-4">
+  <div class="card">
+    <div class="card-header">
+      <h4 class="card-title">{{ title }}</h4>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <!-- Grid Container -->
+        <div class="row g-3">
+          <!-- Columna Izquierda - Campos de Información -->
+          <div class="col-md-6">
+            <div class="row g-3">
+              <!-- Fila 1 - Nombre -->
+              <div class="col-12">
+                <label for="id_nombre" class="form-label">Nombre</label>
+                <input type="text" name="nombre" id="id_nombre"
+                       class="form-control {% if form.nombre.errors %}is-invalid{% elif form.nombre.value %}is-valid{% endif %}"
+                       value="{{ form.nombre.value|default:'' }}">
+                {% if form.nombre.errors %}
+                  <div class="invalid-feedback">{{ form.nombre.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <!-- Fila 2 - Apellido -->
+              <div class="col-12">
+                <label for="id_apellido" class="form-label">Apellido</label>
+                <input type="text" name="apellido" id="id_apellido"
+                       class="form-control {% if form.apellido.errors %}is-invalid{% elif form.apellido.value %}is-valid{% endif %}"
+                       value="{{ form.apellido.value|default:'' }}">
+                {% if form.apellido.errors %}
+                  <div class="invalid-feedback">{{ form.apellido.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <!-- Fila 3 - Identificación -->
+              <div class="col-12">
+                <label for="id_identificacion" class="form-label">Identificación</label>
+                <input type="number" name="identificacion" id="id_identificacion"
+                       class="form-control {% if form.identificacion.errors %}is-invalid{% elif form.identificacion.value %}is-valid{% endif %}"
+                       value="{{ form.identificacion.value|default:'' }}">
+                {% if form.identificacion.errors %}
+                  <div class="invalid-feedback">{{ form.identificacion.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <!-- Fila 4 - Email -->
+              <div class="col-12">
+                <label for="id_email" class="form-label">Email</label>
+                <input type="email" name="email" id="id_email"
+                       class="form-control {% if form.email.errors %}is-invalid{% elif form.email.value %}is-valid{% endif %}"
+                       value="{{ form.email.value|default:'' }}">
+                {% if form.email.errors %}
+                  <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+              <!-- Fila 5 - Teléfono -->
+              <div class="col-12">
+                <label for="id_telefono" class="form-label">Teléfono</label>
+                <input type="tel" name="telefono" id="id_telefono"
+                       class="form-control {% if form.telefono.errors %}is-invalid{% elif form.telefono.value %}is-valid{% endif %}"
+                       value="{{ form.telefono.value|default:'' }}">
+                {% if form.telefono.errors %}
+                  <div class="invalid-feedback">{{ form.telefono.errors.0 }}</div>
+                {% endif %}
+              </div>
+              
+
+            </div>
+          </div>
+          
+          <!-- Columna Derecha - Tallas Preferidas -->
+          <div class="col-md-6">
+            <label class="form-label">
+              Tallas preferidas 
+              <small class="text-muted" id="tallas-counter">0 de 0 seleccionadas</small>
+            </label>
+            
+            <div class="mb-2">
+              <button type="button" class="btn btn-sm btn-outline-primary" id="select-all-tallas">Seleccionar todas</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all-tallas">Deseleccionar todas</button>
+            </div>
+            <div class="border rounded p-3 checkbox-container" style="max-height: 200px; overflow-y: auto;">
+              {% for talla in form.fields.tallas.queryset %}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="tallas" value="{{ talla.id }}" 
+                         id="talla_{{ talla.id }}" 
+                         {% if talla.id in form.tallas.value %}checked{% endif %}>
+                  <label class="form-check-label" for="talla_{{ talla.id }}">
+                    {{ talla.nombre }}
+                    {% if talla.nombre|length <= 3 and talla.nombre|upper in "XS,S,M,L,XL,XXL,XXXL" %}
+                      <span class="badge bg-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla para prendas de tren superior (camisetas, blusas, etc.)">Superior</span>
+                    {% elif talla.nombre|length <= 2 and talla.nombre|first|stringformat:"s" in "0123456789" %}
+                      <span class="badge bg-success ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla para prendas de tren inferior (pantalones, shorts, etc.)">Inferior</span>
+                    {% elif talla.nombre|length > 2 and talla.nombre|slice:":2"|stringformat:"s" in "0123456789" %}
+                      <span class="badge bg-success ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla para prendas de tren inferior (pantalones, shorts, etc.)">Inferior</span>
+                    {% endif %}
+                  </label>
+                </div>
+              {% empty %}
+                <p class="text-muted small">No hay tallas disponibles</p>
+              {% endfor %}
+            </div>
+            
+            <!-- Leyenda de tallas -->
+            <div class="alert alert-info alert-sm mt-2" role="alert">
+              <div class="d-flex align-items-start">
+                <i class="fas fa-info-circle me-2 mt-1"></i>
+                <div class="flex-grow-1">
+                  <strong class="d-block mb-1">📏 Tipos de tallas disponibles:</strong>
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-2">Inferior</span>
+                        <small>Tallas numéricas (26, 28, 30, 32, 34, 36, 38, 40, 42, 44)</small>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="d-flex align-items-center">
+                        <span class="badge bg-primary me-2">Superior</span>
+                        <small>Tallas con letras (XS, S, M, L, XL, XXL, XXXL)</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {% if form.tallas.errors %}
+              <div class="invalid-feedback d-block">{{ form.tallas.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Contenedor de botones mejorado -->
+        <div class="buttons-container mt-4">
+          <div class="d-flex flex-md-row flex-column gap-2 w-100">
+            <div class="d-flex flex-md-row flex-column gap-2 flex-grow-1">
+              <button type="submit" class="btn btn-primary flex-md-grow-0 flex-grow-1" name="action" value="save">Guardar</button>
+              <button type="submit" class="btn btn-soft-primary flex-md-grow-0 flex-grow-1" name="action" value="save_and_add_new">Guardar y añadir otro</button>
+              <button type="submit" class="btn btn-soft-primary flex-md-grow-0 flex-grow-1" name="action" value="save_and_continue">Guardar y continuar editando</button>
+            </div>
+            <a href="{% url 'cliente_list' %}" class="btn btn-danger flex-md-grow-0 flex-grow-1">Cancelar</a>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block pagina_js %}
+
+  <!-- Script para mejorar la experiencia de checkboxes -->
+  <script>
+    $(document).ready(function() {
+      // Función para actualizar contadores
+      function updateCounters() {
+        // Contador de tallas seleccionadas
+        const tallasSeleccionadas = $('input[name="tallas"]:checked').length;
+        const totalTallas = $('input[name="tallas"]').length;
+        $('#tallas-counter').text(`${tallasSeleccionadas} de ${totalTallas} seleccionadas`);
+      }
+
+      // Actualizar contadores al cargar la página
+      updateCounters();
+
+      // Actualizar contadores cuando cambien los checkboxes
+      $('input[name="tallas"]').change(function() {
+        updateCounters();
+      });
+
+      // Agregar efecto hover a los checkboxes
+      $('.form-check').hover(
+        function() {
+          $(this).addClass('bg-light');
+        },
+        function() {
+          $(this).removeClass('bg-light');
+        }
+      );
+
+      // Funcionalidad para seleccionar/deseleccionar todas las tallas
+      $('#select-all-tallas').click(function() {
+        $('input[name="tallas"]').prop('checked', true);
+        updateCounters();
+      });
+
+      $('#deselect-all-tallas').click(function() {
+        $('input[name="tallas"]').prop('checked', false);
+        updateCounters();
+      });
+
+
+
+      // Inicializar tooltips de Bootstrap
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    });
+  </script>
+{% endblock %} 

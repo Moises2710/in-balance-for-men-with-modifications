@@ -1,0 +1,22 @@
+.object-fit-contain {
+    object-fit: contain;
+  }
+  
+  #imagen-preview {
+    max-height: 100%;
+    max-width: 100%;
+  }
+  
+  .cursor-pointer {
+    cursor: pointer;
+  }
+.row.g-3 {
+  align-items: stretch;
+}
+.col-lg-3 .d-flex.flex-column {
+  height: 100%;
+}
+#imagen-placeholder {
+  aspect-ratio: 1/1;
+  min-height: 300px;
+}

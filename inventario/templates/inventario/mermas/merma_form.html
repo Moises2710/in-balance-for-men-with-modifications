@@ -1,0 +1,45 @@
+<form method="post" action="{{ action_url }}" novalidate>
+    {% csrf_token %}
+    <div class="form-group mb-3">
+        <label for="id_cantidad" class="form-label">Cantidad a Mermar</label>
+        <input type="number" name="cantidad" id="id_cantidad" min="1" max="{{ producto.stock }}"
+            class="form-control {% if form.cantidad.errors %}is-invalid{% elif form.cantidad.value %}is-valid{% endif %}"
+            value="{{ form.cantidad.value|default:'' }}" required>
+        <div class="form-text">Stock disponible: {{ producto.stock }} unidades</div>
+        {% if form.cantidad.errors %}
+        <div class="invalid-feedback">{{ form.cantidad.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="id_motivo" class="form-label">Motivo de la Merma</label>
+        <textarea name="motivo" id="id_motivo" rows="3"
+            class="form-control {% if form.motivo.errors %}is-invalid{% elif form.motivo.value %}is-valid{% endif %}"
+            placeholder="Describe el motivo de la merma...">{{ form.motivo.value|default:'' }}</textarea>
+        {% if form.motivo.errors %}
+        <div class="invalid-feedback">{{ form.motivo.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <div class="alert alert-info">
+        <strong>Información del Producto:</strong><br>
+        <strong>Código:</strong> {{ producto.codigo }}<br>
+        <strong>Precio de Compra:</strong> ${{ producto.precio_compra|floatformat:2 }}<br>
+        <strong>Stock Actual:</strong> {{ producto.stock }} unidades
+    </div>
+
+    <div class="text-start">
+        <button type="submit" class="btn btn-danger" name="action" value="save">
+            <i class="btn-inner">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                </svg>
+            </i>
+            Crear Merma
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+    </div>
+</form>

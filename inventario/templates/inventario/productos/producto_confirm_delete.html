@@ -1,0 +1,18 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <h2>¿Estás seguro que deseas eliminar este producto?</h2>
+    <p><strong>Nombre:</strong> {{ object.nombre }}</p>
+    <p><strong>Código:</strong> {{ object.codigo }}</p>
+    <p><strong>Precio de Venta:</strong> ${{ object.precio_venta }}</p>
+    <p><strong>Stock:</strong> {{ object.stock }}</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+      <a href="{% url 'producto_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+
+{% endblock %}

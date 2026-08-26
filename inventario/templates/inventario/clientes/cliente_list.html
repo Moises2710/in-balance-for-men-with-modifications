@@ -1,0 +1,938 @@
+{% extends 'inventario/base.html' %} {% load static %} {% block title %}Lista de
+Clientes{% endblock %} {% block custom_css %}
+<link href="{% static 'assets/css/nuevos/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet" />
+<style>
+   /* Estilos para el toggle de contraseña */
+   .password-wrapper {
+      position: relative;
+   }
+
+   .password-toggle {
+      position: absolute;
+      top: 50%;
+      right: 1rem;
+      transform: translateY(-50%);
+      cursor: pointer;
+      z-index: 10;
+      width: 20px;
+      height: 20px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+   }
+
+   .password-toggle:hover {
+      opacity: 1;
+   }
+
+   .password-wrapper .form-control {
+      padding-right: 3rem;
+   }
+</style>
+{% endblock %} {% block pagina_css %} {% endblock %} {% block content %}
+<div class="col-sm-12">
+   <div class="card">
+      <div class="card-header d-flex justify-content-between flex-wrap">
+         <div class="header-title">
+            <h4 class="card-title">Lista de Clientes</h4>
+         </div>
+         <div class="d-flex gap-2">
+            <button class="btn btn-primary btn-icon" type="button" data-bs-toggle="offcanvas"
+               data-bs-target="#filtrosOffcanvas">
+               <i class="btn-inner">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                     <path d="M10.33 16.5928H4.0293" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                     <path d="M13.1406 6.90042H19.4413" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                     <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M8.72629 6.84625C8.72629 5.5506 7.66813 4.5 6.36314 4.5C5.05816 4.5 4 5.5506 4 6.84625C4 8.14191 5.05816 9.19251 6.36314 9.19251C7.66813 9.19251 8.72629 8.14191 8.72629 6.84625Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                     <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M20.0002 16.5538C20.0002 15.2581 18.9429 14.2075 17.6379 14.2075C16.3321 14.2075 15.2739 15.2581 15.2739 16.5538C15.2739 17.8494 16.3321 18.9 17.6379 18.9C18.9429 18.9 20.0002 17.8494 20.0002 16.5538Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+               </i>
+               Filtros
+            </button>
+
+            {% if perms.inventario.add_cliente %}
+            <a href="{% url 'cliente_create' %}" class="btn btn-primary btn-icon">
+               <i class="btn-inner">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+               </i>
+               <span>Añadir Cliente</span>
+            </a>
+            {% endif %}
+         </div>
+      </div>
+
+      <!-- Offcanvas de Filtros -->
+      <div class="offcanvas offcanvas-end" tabindex="-1" id="filtrosOffcanvas" aria-labelledby="filtrosOffcanvasLabel">
+         <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold" id="filtrosOffcanvasLabel">
+               Filtros Avanzados
+            </h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+         </div>
+         <div class="offcanvas-body p-0">
+            <div class="p-3">
+               <!-- Filtros de Estado -->
+               <div class="card mb-3 border-0 shadow-sm">
+                  <div class="card-header bg-body-tertiary border-0 py-3">
+                     <h6 class="mb-0 fw-bold">Estado del Cliente</h6>
+                  </div>
+                  <div class="card-body">
+                     <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="filter-inactivos" />
+                        <label class="form-check-label" for="filter-inactivos">Mostrar clientes inactivos</label>
+                     </div>
+                     <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="filter-con-saldo" />
+                        <label class="form-check-label" for="filter-con-saldo">Mostrar solo clientes con saldo</label>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Filtros por Columnas -->
+               <div class="card border-0 shadow-sm">
+                  <div class="card-header bg-body-tertiary border-0 py-3">
+                     <h6 class="mb-0 fw-bold">Filtros por Columnas</h6>
+                  </div>
+                  <div class="card-body">
+                     <!-- Filtro para Nombre -->
+                     <div class="mb-3">
+                        <label for="filter-nombre" class="form-label fw-medium">Nombre</label>
+                        <select class="form-select select2-multiple" id="filter-nombre" multiple="multiple">
+                           {% for nombre in nombres_clientes %}
+                           <option value="{{ nombre }}">{{ nombre }}</option>
+                           {% endfor %}
+                        </select>
+                     </div>
+
+                     <!-- Filtro para Apellido -->
+                     <div class="mb-3">
+                        <label for="filter-apellido" class="form-label fw-medium">Apellido</label>
+                        <select class="form-select select2-multiple" id="filter-apellido" multiple="multiple">
+                           {% for apellido in apellidos_clientes %}
+                           <option value="{{ apellido }}">{{ apellido }}</option>
+                           {% endfor %}
+                        </select>
+                     </div>
+
+                     <!-- Filtro para Identificación -->
+                     <div class="mb-3">
+                        <label for="filter-identificacion" class="form-label fw-medium">Identificación</label>
+                        <select class="form-select select2-multiple" id="filter-identificacion" multiple="multiple">
+                           {% for identificacion in identificaciones_clientes %}
+                           <option value="{{ identificacion }}">
+                              {{ identificacion }}
+                           </option>
+                           {% endfor %}
+                        </select>
+                     </div>
+
+                     <!-- Filtro para Email -->
+                     <div class="mb-3">
+                        <label for="filter-email" class="form-label fw-medium">Email</label>
+                        <select class="form-select select2-multiple" id="filter-email" multiple="multiple">
+                           {% for email in emails_clientes %}
+                           <option value="{{ email }}">{{ email }}</option>
+                           {% endfor %}
+                        </select>
+                     </div>
+
+                     <!-- Filtro para Teléfono -->
+                     <div class="mb-3">
+                        <label for="filter-telefono" class="form-label fw-medium">Teléfono</label>
+                        <select class="form-select select2-multiple" id="filter-telefono" multiple="multiple">
+                           {% for telefono in telefonos_clientes %}
+                           <option value="{{ telefono }}">{{ telefono }}</option>
+                           {% endfor %}
+                        </select>
+                     </div>
+
+                     <!-- Filtro para Tallas -->
+                     <div class="mb-3">
+                        <label for="filter-tallas" class="form-label fw-medium">Tallas Preferidas</label>
+                        <select class="form-select select2-multiple" id="filter-tallas" multiple="multiple">
+                           {% for talla in tallas %}
+                           <option value="{{ talla.nombre }}">{{ talla.nombre }}</option>
+                           {% endfor %}
+                        </select>
+                     </div>
+
+                     <!-- Filtro para Saldo -->
+                     <div class="mb-3">
+                        <label class="form-label fw-medium">Saldo</label>
+                        <div class="row g-2">
+                           <div class="col">
+                              <input type="number" step="0.01" class="form-control" id="filter-saldo-min"
+                                 placeholder="Mínimo" />
+                           </div>
+                           <div class="col">
+                              <input type="number" step="0.01" class="form-control" id="filter-saldo-max"
+                                 placeholder="Máximo" />
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Botones de Acción - Sticky en la parte inferior -->
+            <div class="sticky-bottom p-3 bg-body border-top">
+               <div class="d-grid gap-2">
+                  <button class="btn btn-primary" id="btn-aplicar-filtros">
+                     Aplicar Filtros
+                  </button>
+                  <button class="btn btn-danger" id="btn-limpiar-filtros">
+                     Limpiar Todos
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div class="card-body">
+         <div class="table-responsive">
+            <table id="my-table" class="table" data-toggle="data-table">
+               <thead>
+                  <tr>
+                     <th>Nombre</th>
+                     <th>Identificación</th>
+                     <th>Email</th>
+                     <th>Teléfono</th>
+                     <th>Saldo</th>
+                     <th>Deuda</th>
+                     <th>Estado</th>
+                     <th>Tallas</th>
+                     <th>Acciones</th>
+                  </tr>
+               </thead>
+               <tbody></tbody>
+               <tfoot>
+                  <tr>
+                     <th>Nombre</th>
+                     <th>Identificación</th>
+                     <th>Email</th>
+                     <th>Teléfono</th>
+                     <th>Saldo</th>
+                     <th>Deuda</th>
+                     <th>Estado</th>
+                     <th>Tallas</th>
+                     <th>Acciones</th>
+                  </tr>
+               </tfoot>
+            </table>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+   <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" id="confirmModalLabel">Confirmar Acción</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+         </div>
+         <div class="modal-body">
+            <p id="confirmMessage">¿Estás seguro de que deseas continuar?</p>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+               Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" id="confirmBtn">
+               Confirmar
+            </button>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Modal de Confirmación para Clientes -->
+<div class="modal fade" id="confirmClienteModal" tabindex="-1" aria-labelledby="confirmClienteModalLabel"
+   aria-hidden="true">
+   <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+         <form method="post" id="confirmClienteForm">
+            {% csrf_token %}
+            <div class="modal-header">
+               <h5 class="modal-title" id="confirmClienteModalLabel">
+                  Confirmar Acción
+               </h5>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+               <p id="confirmClienteMessage">
+                  ¿Estás seguro de que deseas continuar?
+               </p>
+               <div class="mb-3">
+                  <label for="passwordConfirmCliente" class="form-label">Ingresa tu contraseña para confirmar:</label>
+                  <div class="password-wrapper">
+                     <input type="password" name="password" class="form-control" id="passwordConfirmCliente" required />
+                     <img src="{% static 'assets/images/svg/eye.svg' %}" class="password-toggle"
+                        data-target="passwordConfirmCliente" alt="Mostrar contraseña" />
+                  </div>
+               </div>
+            </div>
+            <div class="modal-footer">
+               <button type="submit" class="btn btn-primary">Confirmar</button>
+               <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                  Cancelar
+               </button>
+            </div>
+         </form>
+      </div>
+   </div>
+</div>
+
+<!-- Modal para Gestionar Saldo del Cliente -->
+<div class="modal fade" id="gestionarSaldoModal" tabindex="-1" aria-labelledby="gestionarSaldoModalLabel"
+   aria-hidden="true">
+   <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" id="gestionarSaldoModalLabel">
+               Gestionar Saldo del Cliente
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+         </div>
+         <div class="modal-body">
+            <div class="mb-3">
+               <p class="mb-2">
+                  <strong>Cliente:</strong> <span id="clienteNombreSaldo"></span>
+               </p>
+               <p class="mb-3">
+                  <strong>Saldo actual:</strong>
+                  <span id="saldoActual" class="text-success fw-bold">$0.00</span>
+               </p>
+            </div>
+
+            <div class="mb-3">
+               <label class="form-label fw-bold">Seleccione una acción:</label>
+               <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-outline-success" id="btnSumarCredito">
+                     <i class="fas fa-plus me-2"></i>Sumar Crédito
+                  </button>
+                  <button type="button" class="btn btn-outline-warning" id="btnRestarCredito">
+                     <i class="fas fa-minus me-2"></i>Restar Crédito
+                  </button>
+               </div>
+            </div>
+
+            <div id="inputCantidadContainer" class="mb-3" style="display: none">
+               <label for="cantidadSaldo" class="form-label fw-bold">Cantidad ($):</label>
+               <input type="number" step="0.01" min="0.01" class="form-control" id="cantidadSaldo" placeholder="0.00" />
+               <div class="invalid-feedback" id="errorCantidad"></div>
+            </div>
+
+            <div id="resumenOperacion" class="mb-3" style="display: none">
+               <p class="mb-0">
+                  <strong>Nuevo saldo:</strong>
+                  <span id="nuevoSaldo" class="text-success fw-bold">$0.00</span>
+               </p>
+            </div>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+               Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" id="btnConfirmarSaldo" style="display: none">
+               Confirmar
+            </button>
+         </div>
+      </div>
+   </div>
+</div>
+{% endblock %} {% block custom_js %} {% endblock %} {% block pagina_js %}
+<script>
+   $(document).ready(function () {
+      // Verificar que Select2 esté disponible antes de inicializarlo
+      if (typeof $.fn.select2 !== "undefined") {
+         // Inicializar Select2 con tema Bootstrap 5
+         $(".select2-multiple").select2({
+            theme: "bootstrap-5",
+            placeholder: "Seleccione opciones",
+            allowClear: true,
+            width: "100%",
+            closeOnSelect: false,
+            dropdownParent: $("#filtrosOffcanvas"),
+         });
+      } else {
+         // Fallback: usar select nativo si Select2 no está disponible
+         $(".select2-multiple").addClass("form-select");
+      }
+
+      // Objeto para almacenar los filtros actuales
+      let filters = {
+         showInactivos: false,
+         showConSaldo: false,
+         nombres: [],
+         apellidos: [],
+         identificaciones: [],
+         emails: [],
+         telefonos: [],
+         tallas: [],
+         saldoMin: null,
+         saldoMax: null,
+      };
+
+      // Inicializar DataTable
+      window.table = $("#my-table").DataTable({
+         ajax: {
+            url: "{% url 'cliente_ajax' %}",
+            type: "GET",
+            cache: false,
+            data: function (d) {
+               // Agregar todos los filtros al request
+               d.show_inactivos = $("#filter-inactivos").is(":checked");
+               d.show_con_saldo = $("#filter-con-saldo").is(":checked");
+               d.nombres = filters.nombres;
+               d.apellidos = filters.apellidos;
+               d.identificaciones = filters.identificaciones;
+               d.emails = filters.emails;
+               d.telefonos = filters.telefonos;
+               d.tallas = filters.tallas;
+               d.saldo_min = filters.saldoMin;
+               d.saldo_max = filters.saldoMax;
+            },
+            dataSrc: function (json) {
+               return json.data || [];
+            },
+         },
+         processing: true,
+         serverSide: true,
+         responsive: true,
+         autoWidth: false,
+         order: [[0, "asc"]], // Ordenar por nombre por defecto
+         dom: '<"row align-items-center"<"col-md-6" l><"col-md-6" f>><"table-responsive my-3" rt><"row align-items-center" <"col-md-6" i><"col-md-6" p>><"clear">',
+         language: {
+            url: "{% static 'assets/js/nuevos/es-ES.json' %}",
+         },
+         columns: [
+            {
+               data: "nombre",
+               render: function (data, type, row) {
+                  return data || "N/A";
+               },
+            },
+            {
+               data: "identificacion",
+               render: function (data, type, row) {
+                  return data || "N/A";
+               },
+            },
+            {
+               data: "email",
+               render: function (data, type, row) {
+                  return data || "N/A";
+               },
+            },
+            {
+               data: "telefono",
+               render: function (data, type, row) {
+                  return data || "N/A";
+               },
+            },
+            {
+               data: "saldo",
+               className: "text-end",
+               render: function (data) {
+                  const saldo = parseFloat(data);
+                  return `<span class="text-success fw-bold">$${saldo.toFixed(
+                     2
+                  )}</span>`;
+               },
+            },
+            {
+               data: "deuda",
+               className: "text-end",
+               render: function (data) {
+                  const deuda = parseFloat(data);
+                  return `<span class="text-danger fw-bold">$${deuda.toFixed(
+                     2
+                  )}</span>`;
+               },
+            },
+            {
+               data: "status",
+               render: function (data) {
+                  return `<span class="badge rounded-pill ${data ? "bg-primary" : "bg-danger"
+                     }">
+                            ${data ? "Activo" : "Inactivo"}</span>`;
+               },
+            },
+            { data: "tallas" },
+            {
+               data: "id",
+               orderable: false, // Deshabilitar ordenamiento para acciones
+               render: function (data, type, row) {
+                  return `
+                    <div class="flex align-items-center list-user-action">
+                        <a type="button" class="btn btn-sm btn-icon btn-info" data-bs-toggle="tooltip" data-bs-placement="top" href="/clientes/${data}/" aria-label="ver detalles" title="Ver detalles">
+                            <span class="btn-inner">
+                                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">                                    
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15.1614 12.0531C15.1614 13.7991 13.7454 15.2141 11.9994 15.2141C10.2534 15.2141 8.83838 13.7991 8.83838 12.0531C8.83838 10.3061 10.2534 8.89111 11.9994 8.89111C13.7454 8.89111 15.1614 10.3061 15.1614 12.0531Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M11.998 19.355C15.806 19.355 19.289 16.617 21.25 12.053C19.289 7.48898 15.806 4.75098 11.998 4.75098H12.002C8.194 4.75098 4.711 7.48898 2.75 12.053C4.711 16.617 8.194 19.355 12.002 19.355H11.998Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>                                
+                                </svg>                                                                    
+                            </span>
+                        </a>
+                        <a class="btn btn-sm btn-icon btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" href="/clientes/editar/${data}/" aria-label="Editar" title="Editar">
+                            <span class="btn-inner">
+                                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M11.4925 2.78906H7.75349C4.67849 2.78906 2.75049 4.96606 2.75049 8.04806V16.3621C2.75049 19.4441 4.66949 21.6211 7.75349 21.6211H16.5775C19.6625 21.6211 21.5815 19.4441 21.5815 16.3621V12.3341" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.82812 10.921L16.3011 3.44799C17.2321 2.51799 18.7411 2.51799 19.6721 3.44799L20.8891 4.66499C21.8201 5.59599 21.8201 7.10599 20.8891 8.03599L13.3801 15.545C12.9731 15.952 12.4211 16.181 11.8451 16.181H8.09912L8.19312 12.401C8.20712 11.845 8.43412 11.315 8.82812 10.921Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M15.1655 4.60254L19.7315 9.16854" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </a>
+                        <button class="btn btn-sm btn-icon btn-success" data-bs-toggle="tooltip" data-bs-placement="top" onclick="gestionarSaldoCliente(${data}, '${row.nombre}', ${row.saldo})" aria-label="Gestionar Saldo" title="Gestionar Saldo">
+                            <span class="btn-inner">
+                                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 1V23" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M17 5H9.5C8.11929 5 7 6.11929 7 7.5S8.11929 10 9.5 10H14.5C15.8807 10 17 11.1193 17 12.5S15.8807 15 14.5 15H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <button class="btn btn-sm btn-icon btn-soft-warning" data-bs-toggle="tooltip" data-bs-placement="top" onclick="toggleClienteStatus(${data}, '${row.nombre}', ${row.status})" aria-label="Cambiar Estado" title="Cambiar Estado">
+                            <span class="btn-inner">
+                                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20.1642 7.1603H6.54639" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M16.0681 3.0827L20.1648 7.1605L16.0681 11.2383" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M3.83276 16.889H17.4505" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M7.92894 20.9165L3.83228 16.8387L7.92894 12.7609" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                    `;
+               },
+            },
+         ],
+         drawCallback: function (settings) {
+            // Reinicializar tooltips después de cada redibujado de la tabla
+            $('[data-bs-toggle="tooltip"]').tooltip();
+         },
+      });
+
+      // Eventos directos para los switches
+      $("#filter-inactivos, #filter-con-saldo").change(function () {
+         window.table.ajax.reload(null, false); // Recarga sin resetear paginación
+      });
+
+      // Función para aplicar filtros
+      function aplicarFiltros() {
+         // Actualizar objeto filters con los valores actuales
+         filters = {
+            showInactivos: $("#filter-inactivos").is(":checked"),
+            showConSaldo: $("#filter-con-saldo").is(":checked"),
+            nombres: $("#filter-nombre").val() || [],
+            apellidos: $("#filter-apellido").val() || [],
+            identificaciones: $("#filter-identificacion").val() || [],
+            emails: $("#filter-email").val() || [],
+            telefonos: $("#filter-telefono").val() || [],
+            tallas: $("#filter-tallas").val() || [],
+            saldoMin: $("#filter-saldo-min").val() || null,
+            saldoMax: $("#filter-saldo-max").val() || null,
+         };
+
+         // Recargar la tabla con los nuevos filtros
+         window.table.ajax.reload();
+      }
+
+      // Evento para el botón aplicar filtros
+      $("#btn-aplicar-filtros").on("click", aplicarFiltros);
+
+      // Evento para limpiar filtros
+      $("#btn-limpiar-filtros").on("click", function () {
+         // Resetear controles
+         $("#filter-inactivos, #filter-con-saldo").prop("checked", false);
+         $(".select2-multiple").val(null).trigger("change");
+         $('input[type="number"]').val("");
+
+         // Resetear objeto filters
+         filters = {
+            showInactivos: false,
+            showConSaldo: false,
+            nombres: [],
+            apellidos: [],
+            identificaciones: [],
+            emails: [],
+            telefonos: [],
+            tallas: [],
+            saldoMin: null,
+            saldoMax: null,
+         };
+
+         // Recargar tabla sin filtros
+         window.table.ajax.reload();
+      });
+
+      // Permitir aplicar filtros con Enter
+      $(".form-control").keypress(function (e) {
+         if (e.which === 13) {
+            aplicarFiltros();
+
+            // Cerrar el offcanvas después de aplicar
+            var offcanvas = bootstrap.Offcanvas.getInstance(
+               document.getElementById("filtrosOffcanvas")
+            );
+            offcanvas.hide();
+         }
+      });
+
+      // Inicializar tooltips
+      $('[data-bs-toggle="tooltip"]').tooltip();
+   });
+
+   // Configurar modal de confirmación para clientes
+   const clienteModal = document.getElementById("confirmClienteModal");
+   const clienteForm = document.getElementById("confirmClienteForm");
+   const clienteMessage = document.getElementById("confirmClienteMessage");
+
+   clienteModal.addEventListener("show.bs.modal", function (event) {
+      const button = event.relatedTarget;
+      const clienteId = button.getAttribute("data-cliente-id");
+      const clienteNombre = button.getAttribute("data-cliente-nombre");
+      const isActive = button.getAttribute("data-cliente-active") === "true";
+
+      // Cambia el mensaje del modal
+      clienteMessage.textContent = isActive
+         ? `¿Estás seguro de que deseas desactivar al cliente "${clienteNombre}"?`
+         : `¿Estás seguro de que deseas activar al cliente "${clienteNombre}"?`;
+
+      // Cambia la acción del formulario
+      clienteForm.action = `/clientes/toggle-status/${clienteId}/`;
+   });
+
+   // Función para cambiar el estado del cliente usando modal
+   function toggleClienteStatus(clienteId, clienteNombre, currentStatus) {
+      // Crear un botón temporal para activar el modal
+      const tempButton = document.createElement("button");
+      tempButton.setAttribute("data-bs-toggle", "modal");
+      tempButton.setAttribute("data-bs-target", "#confirmClienteModal");
+      tempButton.setAttribute("data-cliente-id", clienteId);
+      tempButton.setAttribute("data-cliente-nombre", clienteNombre);
+      tempButton.setAttribute("data-cliente-active", currentStatus);
+
+      // Agregar el botón al DOM temporalmente y hacer clic en él
+      document.body.appendChild(tempButton);
+      tempButton.click();
+      document.body.removeChild(tempButton);
+   }
+
+   // Toggle de contraseña para el modal de confirmación
+   document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".password-toggle").forEach(function (toggle) {
+         toggle.addEventListener("click", function () {
+            const targetId = this.getAttribute("data-target");
+            const passwordInput = document.getElementById(targetId);
+
+            if (passwordInput.type === "password") {
+               passwordInput.type = "text";
+               this.src = "{% static 'assets/images/svg/eye-slash.svg' %}";
+               this.alt = "Ocultar contraseña";
+            } else {
+               passwordInput.type = "password";
+               this.src = "{% static 'assets/images/svg/eye.svg' %}";
+               this.alt = "Mostrar contraseña";
+            }
+         });
+      });
+   });
+
+   // Variables globales para gestión de saldo
+   let clienteActualSaldo = null;
+   let operacionActual = null; // 'sumar' o 'restar'
+
+   // Función para abrir modal de gestión de saldo
+   function gestionarSaldoCliente(clienteId, clienteNombre, saldoActual) {
+      clienteActualSaldo = clienteId;
+      document.getElementById("clienteNombreSaldo").textContent = clienteNombre;
+      document.getElementById("saldoActual").textContent = `$${parseFloat(
+         saldoActual
+      ).toFixed(2)}`;
+
+      // Resetear modal completamente
+      resetearModal();
+
+      // Mostrar modal
+      const modal = new bootstrap.Modal(
+         document.getElementById("gestionarSaldoModal")
+      );
+      modal.show();
+   }
+
+   // Evento para resetear modal cuando se cierre
+   document
+      .getElementById("gestionarSaldoModal")
+      .addEventListener("hidden.bs.modal", function () {
+         resetearModal();
+      });
+
+   function resetearModal() {
+      // Resetear estado de botones
+      document.getElementById("btnSumarCredito").classList.remove("active");
+      document.getElementById("btnRestarCredito").classList.remove("active");
+      document.getElementById("btnSumarCredito").style.display = "inline-block";
+      document.getElementById("btnRestarCredito").style.display = "inline-block";
+
+      // Ocultar input y resumen
+      document.getElementById("inputCantidadContainer").style.display = "none";
+      document.getElementById("resumenOperacion").style.display = "none";
+      document.getElementById("btnConfirmarSaldo").style.display = "none";
+
+      // Limpiar input y errores
+      document.getElementById("cantidadSaldo").value = "";
+      document.getElementById("cantidadSaldo").classList.remove("is-invalid");
+      document.getElementById("errorCantidad").textContent = "";
+
+      // Resetear variables
+      operacionActual = null;
+   }
+
+   // Eventos para los botones de acción
+   document
+      .getElementById("btnSumarCredito")
+      .addEventListener("click", function () {
+         if (operacionActual === "sumar") {
+            // Si ya está activo, desactivar
+            this.classList.remove("active");
+            operacionActual = null;
+            document.getElementById("inputCantidadContainer").style.display =
+               "none";
+            document.getElementById("resumenOperacion").style.display = "none";
+            document.getElementById("btnConfirmarSaldo").style.display = "none";
+         } else {
+            // Activar sumar
+            operacionActual = "sumar";
+            this.classList.add("active");
+            document.getElementById("btnRestarCredito").classList.remove("active");
+            mostrarInputCantidad();
+            // Actualizar resumen si ya hay un valor en el input
+            actualizarResumenSiHayValor();
+         }
+      });
+
+   document
+      .getElementById("btnRestarCredito")
+      .addEventListener("click", function () {
+         if (operacionActual === "restar") {
+            // Si ya está activo, desactivar
+            this.classList.remove("active");
+            operacionActual = null;
+            document.getElementById("inputCantidadContainer").style.display =
+               "none";
+            document.getElementById("resumenOperacion").style.display = "none";
+            document.getElementById("btnConfirmarSaldo").style.display = "none";
+         } else {
+            // Activar restar
+            operacionActual = "restar";
+            this.classList.add("active");
+            document.getElementById("btnSumarCredito").classList.remove("active");
+            mostrarInputCantidad();
+            // Actualizar resumen si ya hay un valor en el input
+            actualizarResumenSiHayValor();
+         }
+      });
+
+   function mostrarInputCantidad() {
+      document.getElementById("inputCantidadContainer").style.display = "block";
+      document.getElementById("cantidadSaldo").focus();
+   }
+
+   function actualizarResumenSiHayValor() {
+      const cantidad =
+         parseFloat(document.getElementById("cantidadSaldo").value) || 0;
+      if (cantidad > 0) {
+         // Simular el evento input para actualizar el resumen
+         document
+            .getElementById("cantidadSaldo")
+            .dispatchEvent(new Event("input"));
+      }
+   }
+
+   // Evento para validar cantidad en tiempo real
+   document
+      .getElementById("cantidadSaldo")
+      .addEventListener("input", function () {
+         const cantidad = parseFloat(this.value) || 0;
+         const saldoActual = parseFloat(
+            document.getElementById("saldoActual").textContent.replace("$", "")
+         );
+         const input = this;
+         const errorDiv = document.getElementById("errorCantidad");
+
+         // Limpiar errores previos
+         input.classList.remove("is-invalid");
+         errorDiv.textContent = "";
+         document.getElementById("resumenOperacion").style.display = "none";
+         document.getElementById("btnConfirmarSaldo").style.display = "none";
+
+         if (cantidad <= 0) {
+            input.classList.add("is-invalid");
+            errorDiv.textContent = "La cantidad debe ser mayor a 0";
+            return;
+         }
+
+         if (operacionActual === "restar") {
+            const nuevoSaldo = saldoActual - cantidad;
+            if (nuevoSaldo < 0) {
+               input.classList.add("is-invalid");
+               errorDiv.textContent = `No se puede restar $${cantidad.toFixed(
+                  2
+               )}. El saldo quedaría en $${nuevoSaldo.toFixed(2)} (negativo)`;
+               return;
+            }
+         }
+
+         // Mostrar resumen de la operación
+         mostrarResumenOperacion(cantidad, saldoActual);
+      });
+
+   function mostrarResumenOperacion(cantidad, saldoActual) {
+      const resumenDiv = document.getElementById("resumenOperacion");
+      const nuevoSaldoSpan = document.getElementById("nuevoSaldo");
+
+      let nuevoSaldo;
+
+      if (operacionActual === "sumar") {
+         nuevoSaldo = saldoActual + cantidad;
+      } else {
+         nuevoSaldo = saldoActual - cantidad;
+      }
+
+      nuevoSaldoSpan.textContent = `$${nuevoSaldo.toFixed(2)}`;
+      resumenDiv.style.display = "block";
+      document.getElementById("btnConfirmarSaldo").style.display = "inline-block";
+   }
+
+   // Evento para confirmar operación
+   document
+      .getElementById("btnConfirmarSaldo")
+      .addEventListener("click", function () {
+         const cantidad = parseFloat(
+            document.getElementById("cantidadSaldo").value
+         );
+
+         if (!cantidad || cantidad <= 0) {
+            return;
+         }
+
+         // Obtener CSRF token
+         function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+               const cookies = document.cookie.split(";");
+               for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === name + "=") {
+                     cookieValue = decodeURIComponent(
+                        cookie.substring(name.length + 1)
+                     );
+                     break;
+                  }
+               }
+            }
+            return cookieValue;
+         }
+
+         // Enviar petición AJAX
+         fetch(`/clientes/gestionar-saldo/${clienteActualSaldo}/`, {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+               "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({
+               operacion: operacionActual,
+               cantidad: cantidad,
+            }),
+         })
+            .then((response) => {
+               if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+               }
+               return response.json();
+            })
+            .then((data) => {
+               if (data.success) {
+                  // Cerrar modal
+                  const modal = bootstrap.Modal.getInstance(
+                     document.getElementById("gestionarSaldoModal")
+                  );
+                  modal.hide();
+
+                  // Recargar tabla usando la variable global
+                  if (typeof window.table !== "undefined") {
+                     window.table.ajax.reload();
+                  } else {
+                     // Fallback: recargar la página
+                     location.reload();
+                  }
+
+                  // Mostrar mensaje de éxito
+                  mostrarToast(data.message, "success");
+               } else {
+                  mostrarToast(
+                     data.error || "Error al procesar la operación",
+                     "error"
+                  );
+               }
+            })
+            .catch((error) => {
+               console.error("Error:", error);
+               mostrarToast("Error de conexión: " + error.message, "error");
+            });
+      });
+
+   // Función para mostrar toasts
+   function mostrarToast(mensaje, tipo = "info") {
+      const tipoClass = {
+         success: "alert-success",
+         error: "alert-danger",
+         warning: "alert-warning",
+         info: "alert-info",
+      };
+
+      const toast = `
+         <div class="mb-3 alert alert-left ${tipoClass[tipo]} alert-dismissible fade show" role="alert">
+            <span>${mensaje}</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+         </div>
+      `;
+
+      // Crear contenedor de toasts si no existe
+      if (document.getElementById("toast-container") === null) {
+         const container = document.createElement("div");
+         container.id = "toast-container";
+         container.className = "position-fixed top-0 end-0 p-3";
+         container.style.zIndex = "1100";
+         document.body.appendChild(container);
+      }
+
+      const toastElement = document.createElement("div");
+      toastElement.innerHTML = toast;
+      document
+         .getElementById("toast-container")
+         .appendChild(toastElement.firstElementChild);
+
+      // Auto-remover después de 3 segundos
+      setTimeout(function () {
+         const alert = toastElement.querySelector(".alert");
+         if (alert) {
+            alert.remove();
+         }
+      }, 3000);
+   }
+</script>
+{% endblock %}

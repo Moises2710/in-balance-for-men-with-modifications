@@ -1,0 +1,199 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block custom_css %}
+<link href="{% static 'assets/css/nuevos/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Card principal - 9 columnas -->
+        <div class="col-12 col-lg-9">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Crear Devolución - Venta #{{ venta.id }}</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Información de la venta -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">Información de la Venta</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Venta:</strong>
+                                <span>#{{ venta.id }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Cliente:</strong>
+                                <span>{{ cliente.nombre }} {{ cliente.apellido|default:"" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Fecha:</strong>
+                                <span>{{ venta.fecha|date:"d/m/Y H:i" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">Totales</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Total Venta:</strong>
+                                <span>${{ venta.total|floatformat:2 }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Total Pagado:</strong>
+                                <span>${{ total_pagado|floatformat:2 }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Saldo Pendiente:</strong>
+                                <span>${{ venta.total_ajustado|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Separador -->
+                    <hr class="my-4">
+
+                    <!-- Resumen de la devolución -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3">Resumen de la Devolución</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>Total de la Devolución:</strong>
+                                        <span id="totalDevolucion" class="fw-bold text-danger">$0.00</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>Productos en Buen Estado:</strong>
+                                        <span id="totalBuenEstado" class="fw-bold text-success">$0.00</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>Productos Dañados:</strong>
+                                        <span id="totalDanados" class="fw-bold text-warning">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" id="devolucionForm">
+                        {% csrf_token %}
+                        <!-- Campo oculto para pasar el total pagado al JavaScript -->
+                        <input type="hidden" id="total-pagado-hidden" value="{{ total_pagado }}">
+
+                        <!-- Tabla de productos compacta -->
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 25%;">Producto</th>
+                                        <th style="width: 10%;" class="text-center">Vendido</th>
+                                        <th style="width: 12%;" class="text-end">Precio</th>
+                                        <th style="width: 10%;" class="text-center">Disponible</th>
+                                        <th style="width: 15%;" class="text-center">Buen Estado</th>
+                                        <th style="width: 15%;" class="text-center">Dañado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detalle in detalles_venta %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ detalle.producto.codigo }}</strong><br>
+                                            <small class="text-muted">{{ detalle.producto.descripcion|truncatechars:30}}</small><br>
+                                            <small class="text-muted">
+                                                {{ detalle.producto.tipo }} - {{ detalle.producto.marca }}
+                                            </small>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary">{{ detalle.cantidad }}</span>
+                                        </td>
+                                        <td class="text-end">${{ detalle.precio_unitario_final|floatformat:2 }}</td>
+                                        <td class="text-center">
+                                            <span
+                                                class="badge {% if detalle.cantidad_disponible > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ detalle.cantidad_disponible }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if detalle.cantidad_disponible > 0 %}
+                                            <input type="number" name="cantidad_devuelta_{{ detalle.id }}"
+                                                id="cantidad_devuelta_{{ detalle.id }}"
+                                                class="form-control form-control-sm cantidad-input" min="0"
+                                                max="{{ detalle.cantidad_disponible }}"
+                                                data-precio="{{ detalle.precio_unitario_final }}"
+                                                data-detalle-id="{{ detalle.id }}" placeholder="0">
+                                            {% else %}
+                                            <span class="text-muted small">No disponible</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if detalle.cantidad_disponible > 0 %}
+                                            <input type="number" name="cantidad_danada_{{ detalle.id }}"
+                                                id="cantidad_danada_{{ detalle.id }}"
+                                                class="form-control form-control-sm cantidad-input" min="0"
+                                                max="{{ detalle.cantidad_disponible }}"
+                                                data-precio="{{ detalle.precio_unitario_final }}"
+                                                data-detalle-id="{{ detalle.id }}" placeholder="0">
+                                            {% else %}
+                                            <span class="text-muted small">No disponible</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-end">
+                                <a href="{% url 'venta_detail' venta.id %}" class="btn btn-secondary me-2">
+                                    <i class="fas fa-arrow-left"></i> Volver a la Venta
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="btnCrearDevolucion" disabled>
+                                    <i class="fas fa-undo"></i> Crear Devolución
+                                </button>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card secundario - 3 columnas -->
+        <div class="col-12 col-lg-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Información Adicional</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="reembolsado" class="form-label">Monto Reembolsado ($)</label>
+                        <input type="number" class="form-control" id="reembolsado" name="reembolsado" step="0.01"
+                            min="0" max="{{ total_pagado }}" placeholder="0.00">
+                        <div class="form-text">Máximo: ${{ total_pagado|floatformat:2 }} (total pagado)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="motivo" class="form-label">Motivo de la Devolución</label>
+                        <textarea class="form-control" id="motivo" name="motivo" rows="4"
+                            placeholder="Describa el motivo de la devolución..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cierre del formulario movido para incluir los campos de la columna derecha -->
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block custom_js %}
+<script src="{% static 'custom/js/devolucion_form.js' %}"></script>
+{% endblock %}

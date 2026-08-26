@@ -1,0 +1,501 @@
+{% extends 'inventario/base.html' %}
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Registrar Pagos para Venta #{{ venta.id }}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Información de la venta -->
+                    <div class="mb-3 text-center">
+                        <div class="row justify-content-center">
+                            <div class="col-md-2">
+                                <strong>Total Venta:</strong><br>
+                                <span id="totalVenta" class="h6">${{ venta.total|floatformat:2 }}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Total Ajustado:</strong><br>
+                                <span id="totalAjustado" class="h6 text-info">${{ venta.total_ajustado|floatformat:2 }}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Faltante por Pagar:</strong><br>
+                                <span id="faltantePagar"
+                                    class="h6 text-danger">${{faltante_por_pagar|floatformat:2}}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Total Pagado:</strong><br>
+                                <span id="totalPagado" class="h6 text-success">${{ total_pagado|floatformat:2 }}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Pago Actual:</strong><br>
+                                <span id="pagoActual" class="h6 text-primary">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Alertas de validación del formulario -->
+                    <div id="alertasFormulario" class="alert alert-danger mb-3 d-none">
+                        <!-- Mensajes de error -->
+                    </div>
+                    <!-- Lista de pagos -->
+                    <div id="listaPagos" class="mb-3">
+                        <!-- Los pagos se agregarán dinámicamente aquí -->
+                    </div>
+                    <!-- Botón para agregar nuevo pago -->
+                    <div class="text-center mb-3">
+                        <button type="button" class="btn btn-soft-primary" id="btnAgregarPago">
+                            <i class="btn-inner">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </i>
+                            Agregar Pago
+                        </button>
+                    </div>
+                    <!-- Template para nuevo pago -->
+                    <template id="templatePago">
+                        <div class="pago-item border rounded p-3 mb-3" data-pago-index="">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Pago #<span class="numero-pago"></span></h6>
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-pago">
+                                    <i class="btn-inner">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                            </path>
+                                        </svg>
+                                    </i>
+                                </button>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Método de Pago</label>
+                                        <select class="form-select metodo-pago" name="metodo_pago" required>
+                                            <option value="">Seleccione un método</option>
+                                            {% for metodo in metodos_pago %}
+                                            <option value="{{ metodo.id }}"
+                                                data-requiere-tasa="{{ metodo.requiere_tasa|yesno:'true,false' }}"
+                                                data-moneda="{{ metodo.moneda }}"
+                                                data-es-saldo="{% if metodo.nombre == 'Saldo' %}true{% else %}false{% endif %}">
+                                                {{ metodo.nombre }} ({{ metodo.moneda}})</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="saldo-info mt-1" style="display: none;">
+                                            <small class="text-muted">Saldo disponible: <span
+                                                    class="saldo-disponible fw-bold {% if venta.cliente.saldo < 0 %}text-danger{% else %}text-success{% endif %}">${{venta.cliente.saldo|floatformat:2}}</span></small>
+                                        </div>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Monto Pagado</label>
+                                        <input type="number" class="form-control monto-pagado" name="monto_pagado"
+                                            step="0.01" min="0.01" required>
+                                        <div class="form-text">Máximo: <span
+                                                class="maximo-pagar text-danger">${{faltante_por_pagar|floatformat:2}}</span>
+
+                                        </div>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3 tasa-container" style="display: none;">
+                                        <label class="form-label">Tasa de Cambio</label>
+                                        <input type="number" class="form-control tasa-cambio" name="tasa_cambio"
+                                            step="0.01" min="0.01">
+                                        <div class="form-text"><strong>Ejemplo:</strong> Si 1 USD = 35 VES, ingrese 35
+                                        </div>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Equivalente en USD</label>
+                                        <input type="text" class="form-control equivalente-usd" readonly>
+                                        <div class="form-text">Monto que se aplicará a la venta</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div class="card-footer d-flex justify-content-start gap-2">
+                    <button type="button" class="btn btn-primary" id="btnGuardarPagos">Guardar Pagos</button>
+                    <a href="{% url 'venta_list' %}" class="btn btn-danger">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts para manejo dinámico de pagos -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let contadorPagos = 0;
+        const totalVenta = parseFloat("{{ venta.total }}");
+        const totalAjustado = parseFloat("{{ venta.total_ajustado }}");
+        const totalPagado = parseFloat("{{ total_pagado }}");
+        const faltantePagar = parseFloat("{{ faltante_por_pagar }}");
+
+        // Función para obtener CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Función para agregar un nuevo pago
+        function agregarPago() {
+            contadorPagos++;
+            const template = document.getElementById('templatePago');
+            const clone = template.content.cloneNode(true);
+
+            // Actualizar índice y número de pago
+            const pagoItem = clone.querySelector('.pago-item');
+            pagoItem.setAttribute('data-pago-index', contadorPagos);
+            clone.querySelector('.numero-pago').textContent = contadorPagos;
+
+            // Agregar eventos
+            const metodoPago = clone.querySelector('.metodo-pago');
+            const montoPagado = clone.querySelector('.monto-pagado');
+            const tasaCambio = clone.querySelector('.tasa-cambio');
+            const btnEliminar = clone.querySelector('.btn-eliminar-pago');
+
+            // Evento para mostrar/ocultar tasa de cambio y manejar saldo
+            metodoPago.addEventListener('change', function () {
+                const option = this.options[this.selectedIndex];
+                const requiereTasa = option.getAttribute('data-requiere-tasa') === 'true';
+                const esSaldo = option.getAttribute('data-es-saldo') === 'true';
+                const tasaContainer = pagoItem.querySelector('.tasa-container');
+                const saldoInfo = pagoItem.querySelector('.saldo-info');
+
+                // Ocultar saldo info por defecto
+                if (saldoInfo) saldoInfo.style.display = 'none';
+
+                if (requiereTasa) {
+                    tasaContainer.style.display = 'block';
+                    tasaCambio.required = true;
+                } else {
+                    tasaContainer.style.display = 'none';
+                    tasaCambio.required = false;
+                    tasaCambio.value = '';
+                }
+
+                // Manejar saldo del cliente (solo valores positivos)
+                if (esSaldo && saldoInfo) {
+                    const saldoDisponible = parseFloat("{{ venta.cliente.saldo }}");
+                    saldoInfo.style.display = 'block';
+
+                    if (saldoDisponible > 0) {
+                        // Permitir usar el saldo hasta completar el total ajustado de la venta
+                        const totalAjustadoValue = parseFloat("{{ venta.total_ajustado }}");
+                        const totalPagadoValue = parseFloat("{{ total_pagado }}");
+                        const maximoPorVenta = Math.max(0, totalAjustadoValue - totalPagadoValue);
+                        const montoMaximo = Math.min(saldoDisponible, maximoPorVenta);
+
+                        if (montoMaximo > 0) {
+                            montoPagado.setAttribute('max', montoMaximo.toFixed(2));
+                            montoPagado.value = montoMaximo.toFixed(2);
+                            montoPagado.classList.remove('is-invalid');
+                        } else {
+                            montoPagado.value = '0';
+                            montoPagado.classList.add('is-invalid');
+                            const feedback = pagoItem.querySelector('.invalid-feedback');
+                            if (feedback) {
+                                feedback.textContent = 'La venta ya está completamente pagada';
+                            }
+                        }
+                    } else {
+                        // No permitir usar saldo si es 0 o negativo
+                        montoPagado.value = '0';
+                        montoPagado.classList.add('is-invalid');
+                        const feedback = pagoItem.querySelector('.invalid-feedback');
+                        if (feedback) {
+                            feedback.textContent = 'El cliente no tiene saldo disponible';
+                        }
+                    }
+                } else {
+                    // Restaurar configuración normal para otros métodos
+                    montoPagado.removeAttribute('max');
+                    montoPagado.classList.remove('is-invalid');
+                    const feedback = pagoItem.querySelector('.invalid-feedback');
+                    if (feedback) {
+                        feedback.textContent = '';
+                    }
+                }
+
+                calcularEquivalenteUSD(pagoItem);
+                actualizarPagoActual();
+            });
+
+            // Eventos para calcular equivalente en USD
+            montoPagado.addEventListener('input', function () {
+                calcularEquivalenteUSD(pagoItem);
+                actualizarPagoActual();
+            });
+
+            tasaCambio.addEventListener('input', function () {
+                calcularEquivalenteUSD(pagoItem);
+                actualizarPagoActual();
+            });
+
+            // Evento para eliminar pago
+            btnEliminar.addEventListener('click', function () {
+                pagoItem.remove();
+                actualizarPagoActual();
+                limpiarErrores();
+            });
+
+            document.getElementById('listaPagos').appendChild(clone);
+            actualizarPagoActual();
+        }
+
+        // Función para calcular equivalente en USD
+        function calcularEquivalenteUSD(pagoItem) {
+            const metodoPago = pagoItem.querySelector('.metodo-pago');
+            const montoPagado = pagoItem.querySelector('.monto-pagado');
+            const tasaCambio = pagoItem.querySelector('.tasa-cambio');
+            const equivalenteUSD = pagoItem.querySelector('.equivalente-usd');
+
+            const monto = parseFloat(montoPagado.value) || 0;
+
+            if (monto > 0) {
+                const option = metodoPago.options[metodoPago.selectedIndex];
+                const requiereTasa = option.getAttribute('data-requiere-tasa') === 'true';
+
+                if (requiereTasa) {
+                    const tasa = parseFloat(tasaCambio.value) || 0;
+                    if (tasa > 0) {
+                        const montoUSD = monto / tasa;
+                        equivalenteUSD.value = `$${montoUSD.toFixed(2)}`;
+                    } else {
+                        equivalenteUSD.value = 'Ingrese tasa';
+                    }
+                } else {
+                    equivalenteUSD.value = `$${monto.toFixed(2)}`;
+                }
+            } else {
+                equivalenteUSD.value = '';
+            }
+        }
+
+        // Función para actualizar el pago actual
+        function actualizarPagoActual() {
+            let totalPagoActual = 0;
+
+            document.querySelectorAll('.pago-item').forEach(function (pagoItem) {
+                const metodoPago = pagoItem.querySelector('.metodo-pago');
+                const montoPagado = pagoItem.querySelector('.monto-pagado');
+                const tasaCambio = pagoItem.querySelector('.tasa-cambio');
+
+                const monto = parseFloat(montoPagado.value) || 0;
+
+                if (monto > 0 && metodoPago.value) {
+                    const option = metodoPago.options[metodoPago.selectedIndex];
+                    const requiereTasa = option.getAttribute('data-requiere-tasa') === 'true';
+
+                    if (requiereTasa) {
+                        const tasa = parseFloat(tasaCambio.value) || 0;
+                        if (tasa > 0) {
+                            totalPagoActual += monto / tasa;
+                        }
+                    } else {
+                        totalPagoActual += monto;
+                    }
+                }
+            });
+
+            document.getElementById('pagoActual').textContent = `$${totalPagoActual.toFixed(2)}`;
+
+            // Actualizar máximo en cada pago (permitir hasta completar el total ajustado de la venta)
+            document.querySelectorAll('.maximo-pagar').forEach(function (elemento) {
+                const maximoRecomendado = Math.max(0, totalAjustado - totalPagado - totalPagoActual);
+                elemento.textContent = `$${maximoRecomendado.toFixed(2)} (Total ajustado: $${totalAjustado.toFixed(2)})`;
+            });
+        }
+
+        // Función para validar formulario
+        function validarFormulario() {
+            let esValido = true;
+            const errores = [];
+
+            // Limpiar errores previos
+            limpiarErrores();
+
+            const pagos = document.querySelectorAll('.pago-item');
+
+            if (pagos.length === 0) {
+                errores.push('Debe agregar al menos un pago.');
+                esValido = false;
+            }
+
+            pagos.forEach(function (pagoItem, index) {
+                const metodoPago = pagoItem.querySelector('.metodo-pago');
+                const montoPagado = pagoItem.querySelector('.monto-pagado');
+                const tasaCambio = pagoItem.querySelector('.tasa-cambio');
+
+                // Validar método de pago
+                if (!metodoPago.value) {
+                    mostrarError(metodoPago, 'Debe seleccionar un método de pago.');
+                    esValido = false;
+                }
+
+                // Validar monto
+                const monto = parseFloat(montoPagado.value) || 0;
+                const option = metodoPago.options[metodoPago.selectedIndex];
+                const esSaldo = option.getAttribute('data-es-saldo') === 'true';
+
+                if (monto <= 0 || montoPagado.value === '' || montoPagado.value === '0' || montoPagado.value === '0.00') {
+                    mostrarError(montoPagado, 'El monto debe ser mayor a 0.00.');
+                    esValido = false;
+                } else if (esSaldo) {
+                    // Validaciones específicas para saldo del cliente
+                    const saldoDisponible = parseFloat("{{ venta.cliente.saldo }}");
+                    if (saldoDisponible <= 0) {
+                        mostrarError(montoPagado, 'El cliente no tiene saldo disponible.');
+                        esValido = false;
+                    } else if (monto > saldoDisponible) {
+                        mostrarError(montoPagado, `Excede el saldo disponible ($${saldoDisponible.toFixed(2)}).`);
+                        esValido = false;
+                    }
+                }
+
+                // Validar tasa si es requerida
+                if (metodoPago.value) {
+                    const option = metodoPago.options[metodoPago.selectedIndex];
+                    const requiereTasa = option.getAttribute('data-requiere-tasa') === 'true';
+
+                    if (requiereTasa) {
+                        const tasa = parseFloat(tasaCambio.value) || 0;
+                        if (tasa <= 0) {
+                            mostrarError(tasaCambio, 'Debe ingresar una tasa válida.');
+                            esValido = false;
+                        }
+                    }
+                }
+            });
+
+            // Validar exceso de pago (no permitir exceso)
+            const pagoActual = parseFloat(document.getElementById('pagoActual').textContent.replace('$', ''));
+            const excesoReal = (totalPagado + pagoActual) - totalAjustado;
+
+            if (excesoReal > 0.01) {
+                // No permitir exceso de pago
+                errores.push(`No se puede registrar un exceso de pago de $${excesoReal.toFixed(2)}. El pago no puede exceder el total ajustado de la venta.`);
+                esValido = false;
+            }
+
+            // Mostrar errores generales
+            if (errores.length > 0) {
+                mostrarErroresGenerales(errores);
+            }
+
+            return esValido;
+        }
+
+        // Función para mostrar error en campo específico
+        function mostrarError(campo, mensaje) {
+            campo.classList.add('is-invalid');
+            const feedback = campo.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.textContent = mensaje;
+            }
+        }
+
+        // Función para mostrar errores generales
+        function mostrarErroresGenerales(errores) {
+            const alertContainer = document.getElementById('alertasFormulario');
+            alertContainer.innerHTML = errores.map(error => `<div>${error}</div>`).join('');
+            alertContainer.classList.remove('d-none');
+        }
+
+        // Función para limpiar errores
+        function limpiarErrores() {
+            document.querySelectorAll('.is-invalid').forEach(function (elemento) {
+                elemento.classList.remove('is-invalid');
+            });
+            document.getElementById('alertasFormulario').classList.add('d-none');
+        }
+
+        // Función para recopilar datos de pagos
+        function recopilarDatosPagos() {
+            const pagos = [];
+
+            document.querySelectorAll('.pago-item').forEach(function (pagoItem) {
+                const metodoPago = pagoItem.querySelector('.metodo-pago');
+                const montoPagado = pagoItem.querySelector('.monto-pagado');
+                const tasaCambio = pagoItem.querySelector('.tasa-cambio');
+
+                if (metodoPago.value && montoPagado.value) {
+                    const pago = {
+                        metodo_pago: metodoPago.value,
+                        monto_pagado: parseFloat(montoPagado.value)
+                    };
+
+                    const option = metodoPago.options[metodoPago.selectedIndex];
+                    const requiereTasa = option.getAttribute('data-requiere-tasa') === 'true';
+
+                    if (requiereTasa && tasaCambio.value) {
+                        pago.tasa_cambio = parseFloat(tasaCambio.value);
+                    }
+
+                    pagos.push(pago);
+                }
+            });
+
+            return pagos;
+        }
+
+        // Event listeners
+        document.getElementById('btnAgregarPago').addEventListener('click', agregarPago);
+
+        document.getElementById('btnGuardarPagos').addEventListener('click', function () {
+            if (validarFormulario()) {
+                const pagosData = recopilarDatosPagos();
+
+                // Crear formulario para envío
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '';
+
+                // CSRF token
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = getCookie('csrftoken');
+                form.appendChild(csrfInput);
+
+                // Datos de pagos
+                const pagosInput = document.createElement('input');
+                pagosInput.type = 'hidden';
+                pagosInput.name = 'pagos_data';
+                pagosInput.value = JSON.stringify(pagosData);
+                form.appendChild(pagosInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+
+        // Agregar primer pago automáticamente
+        agregarPago();
+    });
+</script>
+{% endblock %}

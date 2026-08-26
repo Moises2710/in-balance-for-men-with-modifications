@@ -1,0 +1,441 @@
+{% extends 'inventario/base.html' %} {% load static %} {% block title %}Lista de
+Mermas{% endblock %} {% block custom_css %}
+<link href="{% static 'assets/css/nuevos/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet" />
+{% endblock %} {% block pagina_css %} {% endblock %} {% block content %}
+<div class="col-sm-12">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between flex-wrap">
+            <div class="header-title">
+                <h4 class="card-title">Lista de Mermas</h4>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-icon" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#filtrosOffcanvas">
+                    <i class="btn-inner">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path d="M10.33 16.5928H4.0293" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M13.1406 6.90042H19.4413" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M8.72629 6.84625C8.72629 5.5506 7.66813 4.5 6.36314 4.5C5.05816 4.5 4 5.5506 4 6.84625C4 8.14191 5.05816 9.19251 6.36314 9.19251C7.66813 9.19251 8.72629 8.14191 8.72629 6.84625Z"
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M20.0002 16.5538C20.0002 15.2581 18.9429 14.2075 17.6379 14.2075C16.3321 14.2075 15.2739 15.2581 15.2739 16.5538C15.2739 17.8494 16.3321 18.9 17.6379 18.9C18.9429 18.9 20.0002 17.8494 20.0002 16.5538Z"
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg>
+                    </i>
+                    Filtros
+                </button>
+            </div>
+        </div>
+
+        <!-- Offcanvas de Filtros -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="filtrosOffcanvas"
+            aria-labelledby="filtrosOffcanvasLabel">
+            <div class="offcanvas-header border-bottom">
+                <h5 class="offcanvas-title fw-bold" id="filtrosOffcanvasLabel">
+                    Filtros Avanzados
+                </h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                    aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-0">
+                <div class="p-3">
+                    <!-- Filtros por Columnas -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-body-tertiary border-0 py-3">
+                            <h6 class="mb-0 fw-bold">Filtros por Columnas</h6>
+                        </div>
+                        <div class="card-body">
+                            <!-- Filtro para ID -->
+                            <div class="mb-3">
+                                <label for="filter-id" class="form-label fw-medium">ID de Merma</label>
+                                <input type="number" class="form-control" id="filter-id" placeholder="Buscar por ID" />
+                            </div>
+
+                            <!-- Filtro para Código -->
+                            <div class="mb-3">
+                                <label for="filter-codigo" class="form-label fw-medium">Código</label>
+                                <input type="text" class="form-control" id="filter-codigo"
+                                    placeholder="Buscar por código" />
+                            </div>
+
+                            <!-- Filtro para Origen -->
+                            <div class="mb-3">
+                                <label for="filter-origen" class="form-label fw-medium">Origen</label>
+                                <select class="form-select select2-multiple" id="filter-origen" multiple="multiple">
+                                    {% for origen in origenes %}
+                                    <option value="{{ origen }}">{{ origen|title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Filtro para Tipo -->
+                            <div class="mb-3">
+                                <label for="filter-tipo" class="form-label fw-medium">Tipo</label>
+                                <select class="form-select select2-multiple" id="filter-tipo" multiple="multiple">
+                                    {% for tipo in tipos %}
+                                    <option value="{{ tipo.nombre }}">{{ tipo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Filtro para Marca -->
+                            <div class="mb-3">
+                                <label for="filter-marca" class="form-label fw-medium">Marca</label>
+                                <select class="form-select select2-multiple" id="filter-marca" multiple="multiple">
+                                    {% for marca in marcas %}
+                                    <option value="{{ marca.nombre }}">{{ marca.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+
+                            <!-- Filtro para Talla -->
+                            <div class="mb-3">
+                                <label for="filter-talla" class="form-label fw-medium">Talla</label>
+                                <select class="form-select select2-multiple" id="filter-talla" multiple="multiple">
+                                    {% for talla in tallas %}
+                                    <option value="{{ talla.nombre }}">{{ talla.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Filtro para Cantidad -->
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Cantidad</label>
+                                <div class="row g-2">
+                                    <div class="col">
+                                        <input type="number" class="form-control" id="filter-cantidad-min"
+                                            placeholder="Mínimo" />
+                                    </div>
+                                    <div class="col">
+                                        <input type="number" class="form-control" id="filter-cantidad-max"
+                                            placeholder="Máximo" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Filtro para Precio Compra -->
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Precio Compra</label>
+                                <div class="row g-2">
+                                    <div class="col">
+                                        <input type="number" step="0.01" class="form-control" id="filter-precio-min"
+                                            placeholder="Mínimo" />
+                                    </div>
+                                    <div class="col">
+                                        <input type="number" step="0.01" class="form-control" id="filter-precio-max"
+                                            placeholder="Máximo" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Filtro para Fecha -->
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Rango de Fechas</label>
+                                <div class="row g-2">
+                                    <div class="col">
+                                        <input type="date" class="form-control" id="filter-fecha-desde" />
+                                    </div>
+                                    <div class="col">
+                                        <input type="date" class="form-control" id="filter-fecha-hasta" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción - Sticky en la parte inferior -->
+                <div class="sticky-bottom p-3 bg-body border-top">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" id="btn-aplicar-filtros">
+                            Aplicar Filtros
+                        </button>
+                        <button class="btn btn-danger" id="btn-limpiar-filtros">
+                            Limpiar Todos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="my-table" class="table" data-toggle="data-table">
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Código</th>
+                            <th>Tipo</th>
+                            <th>Marca</th>
+                            <th>Talla</th>
+                            <th>Cantidad</th>
+                            <th>P. Compra</th>
+                            <th>Total Costo</th>
+                            <th>Origen</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Código</th>
+                            <th>Tipo</th>
+                            <th>Marca</th>
+                            <th>Talla</th>
+                            <th>Cantidad</th>
+                            <th>P. Compra</th>
+                            <th>Total Costo</th>
+                            <th>Origen</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block custom_js %}
+<script src="{% static 'assets/js/plugins/select2.min.js' %}"></script>
+{% endblock %} {% block pagina_js %}
+<script>
+    $(document).ready(function () {
+        // Inicializar Select2 con tema Bootstrap 5
+        $(".select2-multiple").select2({
+            theme: "bootstrap-5",
+            placeholder: "Seleccione opciones",
+            allowClear: true,
+            width: "100%",
+            closeOnSelect: false,
+            dropdownParent: $("#filtrosOffcanvas"),
+        });
+
+        // Objeto para almacenar los filtros actuales
+        let filters = {
+            idFilter: "",
+            codigoFilter: "",
+            origenFilter: "",
+            tipos: [],
+            marcas: [],
+            tallas: [],
+            cantidadMin: null,
+            cantidadMax: null,
+            precioMin: null,
+            precioMax: null,
+            fechaDesde: null,
+            fechaHasta: null,
+        };
+
+        // Inicializar DataTable
+        var table = $("#my-table").DataTable({
+            ajax: {
+                url: "{% url 'merma_ajax' %}",
+                type: "GET",
+                data: function (d) {
+                    // Agregar todos los filtros al request
+                    d.id_filter = filters.idFilter;
+                    d.codigo_filter = filters.codigoFilter;
+                    d.origen_filter = filters.origenFilter;
+                    d.tipo_filter = filters.tipos.join(",");
+                    d.marca_filter = filters.marcas.join(",");
+                    d.talla_filter = filters.tallas.join(",");
+                    d.cantidad_min = filters.cantidadMin;
+                    d.cantidad_max = filters.cantidadMax;
+                    d.precio_min = filters.precioMin;
+                    d.precio_max = filters.precioMax;
+                    d.fecha_desde = filters.fechaDesde;
+                    d.fecha_hasta = filters.fechaHasta;
+                },
+            },
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            autoWidth: false,
+            order: [[1, 'desc']], // Ordenar por ID (columna 1) de mayor a menor
+            dom: '<"row align-items-center"<"col-md-6" l><"col-md-6" f>><"table-responsive my-3" rt><"row align-items-center" <"col-md-6" i><"col-md-6" p>><"clear">',
+            language: {
+                url: "{% static 'assets/js/nuevos/es-ES.json' %}",
+            },
+            columns: [
+                {
+                    data: null,
+                    orderable: false, // Deshabilitar ordenamiento para imagen
+                    render: function (data, type, row) {
+                        if (row.thumbnail_url) {
+                            return `<img src="${row.thumbnail_url}" loading="lazy" class="rounded img-fluid avatar-40 bg-soft-primary" width="50" title="Producto imagen">`;
+                        } else if (row.has_image) {
+                            return `
+                             <svg loading="lazy" class="rounded img-fluid avatar-40 bg-soft-danger" width="32" title="imagen-corrupta" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" title="Error al cargar la imagen">
+                             <path d="M14.2647 15.9377L12.5473 14.2346C11.758 13.4519 11.3633 13.0605 10.9089 12.9137C10.5092 12.7845 10.079 12.7845 9.67922 12.9137C9.22485 13.0605 8.83017 13.4519 8.04082 14.2346L4.04193 18.2622M14.2647 15.9377L14.606 15.5991C15.412 14.7999 15.8149 14.4003 16.2773 14.2545C16.6839 14.1262 17.1208 14.1312 17.5244 14.2688C17.9832 14.4253 18.3769 14.834 19.1642 15.6515L20 16.5001M14.2647 15.9377L18.22 19.9628M12 4H7.2C6.07989 4 6.07989 4 5.51984 4 5.09202 4.21799C4.7157 4.40973 4.40973 4.71569 4.21799 5.09202C4 5.51984 4 6.0799 4 7.2V16.8C4 17.4466 4 17.9066 4.04193 18.2622M4.04193 18.2622C4.07264 18.5226 4.12583 18.7271 4.21799 18.908C4.40973 19.2843 4.7157 19.5903 5.09202 19.782C5.51984 20 6.07989 20 7.2 20H16.8C17.9201 20 18.4802 20 18.908 19.782C19.2843 19.5903 19.5903 19.2843 19.782 18.908C20 18.4802 20 17.9201 20 16.8V12M16 3L18.5 5.5M18.5 5.5L21 8M18.5 5.5L21 3M18.5 5.5L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                             </svg>
+                         `;
+                        } else {
+                            return `
+                             <img 
+                                 src="{% static 'assets/images/svg/image-square.svg' %}"
+                                 loading="lazy" 
+                                 class="rounded img-fluid avatar-40 bg-soft-primary" 
+                                 width="32"
+                                 title="Sin imagen"
+                             > 
+                         `;
+                        }
+                    },
+                },
+                { data: "id", className: "text-center" },
+                { data: "fecha" },
+                { data: "codigo" },
+                { data: "tipo" },
+                { data: "marca" },
+                { data: "talla" },
+                { data: "cantidad", className: "text-end" },
+                {
+                    data: "precio_compra",
+                    className: "text-end",
+                    render: function (data) {
+                        return `$${parseFloat(data).toFixed(2)}`;
+                    },
+                },
+                {
+                    data: "total_costo",
+                    className: "text-end",
+                    orderable: false, // Deshabilitar ordenamiento para total_costo
+                    render: function (data) {
+                        return `$${parseFloat(data).toFixed(2)}`;
+                    },
+                },
+                {
+                    data: "origen",
+                    render: function (data) {
+                        const badgeClass = data === "tienda" ? "bg-primary" : "bg-warning";
+                        return `<span class="badge rounded-pill ${badgeClass}">${data}</span>`;
+                    },
+                },
+                {
+                    data: "id",
+                    orderable: false, // Deshabilitar ordenamiento para acciones
+                    render: function (data, type, row) {
+                        return `
+                     <div class="flex align-items-center list-user-action">
+                         <a type="button" class="btn btn-sm btn-info" href="/inventario/mermas/${data}/" aria-label="ver detalles" title="Ver detalles">
+                             Ver detalles
+                         </a>
+                     </div>
+                     `;
+                    },
+                },
+            ],
+            drawCallback: function (settings) {
+                // Reinicializar tooltips después de cada redibujado de la tabla
+                $('[data-bs-toggle="tooltip"]').tooltip();
+            },
+        });
+
+        // Función para aplicar filtros
+        function aplicarFiltros() {
+            // Actualizar objeto filters con los valores actuales
+            filters = {
+                idFilter: $("#filter-id").val() || "",
+                codigoFilter: $("#filter-codigo").val() || "",
+                origenFilter: $("#filter-origen").val()
+                    ? $("#filter-origen").val().join(",")
+                    : "",
+                tipos: $("#filter-tipo").val() || [],
+                marcas: $("#filter-marca").val() || [],
+                tallas: $("#filter-talla").val() || [],
+                cantidadMin: $("#filter-cantidad-min").val() || null,
+                cantidadMax: $("#filter-cantidad-max").val() || null,
+                precioMin: $("#filter-precio-min").val() || null,
+                precioMax: $("#filter-precio-max").val() || null,
+                fechaDesde: $("#filter-fecha-desde").val() || null,
+                fechaHasta: $("#filter-fecha-hasta").val() || null,
+            };
+
+            // Recargar la tabla con los nuevos filtros
+            table.ajax.reload();
+        }
+
+        // Evento para el botón aplicar filtros
+        $("#btn-aplicar-filtros").on("click", aplicarFiltros);
+
+        // Evento para limpiar filtros
+        $("#btn-limpiar-filtros").on("click", function () {
+            // Resetear controles
+            $("#filter-id").val("");
+            $("#filter-codigo").val("");
+            $(".select2-multiple").val(null).trigger("change");
+            $('input[type="number"], input[type="date"]').val("");
+
+            // Resetear objeto filters
+            filters = {
+                idFilter: "",
+                codigoFilter: "",
+                origenFilter: "",
+                tipos: [],
+                marcas: [],
+                tallas: [],
+                cantidadMin: null,
+                cantidadMax: null,
+                precioMin: null,
+                precioMax: null,
+                fechaDesde: null,
+                fechaHasta: null,
+            };
+
+            // Recargar tabla sin filtros
+            table.ajax.reload();
+        });
+
+        // Permitir aplicar filtros con Enter
+        $(".form-control").keypress(function (e) {
+            if (e.which === 13) {
+                aplicarFiltros();
+
+                // Cerrar el offcanvas después de aplicar
+                var offcanvas = bootstrap.Offcanvas.getInstance(
+                    document.getElementById("filtrosOffcanvas")
+                );
+                offcanvas.hide();
+            }
+        });
+
+        // Inicializar tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
+
+<script>
+    // Verifica que jQuery esté cargado
+    if (typeof jQuery == "undefined") {
+        console.error("jQuery no está cargado");
+    } else {
+        console.log("jQuery versión:", jQuery.fn.jquery);
+    }
+
+    // Verifica que Select2 esté cargado
+    if (typeof jQuery.fn.select2 == "undefined") {
+        console.error("Select2 no está cargado");
+    } else {
+        console.log("Select2 está disponible");
+    }
+
+    // Verifica que DataTables esté cargado
+    if (typeof jQuery.fn.DataTable == "undefined") {
+        console.error("DataTables no está cargado");
+    } else {
+        console.log("DataTables está disponible");
+    }
+</script>
+{% endblock %}

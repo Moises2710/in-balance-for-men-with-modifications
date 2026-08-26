@@ -1,0 +1,487 @@
+{% extends 'inventario/base.html' %} {% load static %} {% block title %}Dashboard - In Balance{% endblock %} {% block header_title %}Dashboard{% endblock %} {% block custom_css %}
+<style>
+  /* Mejora visual: resaltar botón activo del switch */
+  #dashboard-tables-switch .btn.active {
+    background-color: var(--bs-primary);
+    color: #fff;
+    border-color: var(--bs-primary);
+  }
+
+  #dashboard-tables-switch .btn.active:hover {
+    color: #fff;
+  }
+
+  .welcome-card {
+    border: none;
+  }
+
+  .metric-card {
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-5px);
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="col-sm-12">
+    <!-- Card de Bienvenida -->
+    <div class="card welcome-card mb-4" data-aos="fade-up">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="card-title mb-1">¡Hola, {{ username }}! 👋</h2>
+                    <p class="mb-0">Bienvenido a tu panel de control personal</p>
+                    <small class="opacity-75">Período: {{ periodo_inicio }} - {{ periodo_fin }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <!-- Métricas del Usuario -->
+  <div class="row">
+    <!-- Ventas del Usuario -->
+    <div class="col-lg-3 col-md-6">
+      <div class="card metric-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="bg-primary text-white rounded p-3">
+              <svg class="icon-25" width="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                  d="M14.1213 11.2331H16.8891C17.3088 11.2331 17.6386 10.8861 17.6386 10.4677C17.6386 10.0391 17.3088 9.70236 16.8891 9.70236H14.1213C13.7016 9.70236 13.3719 10.0391 13.3719 10.4677C13.3719 10.8861 13.7016 11.2331 14.1213 11.2331ZM20.1766 5.92749C20.7861 5.92749 21.1858 6.1418 21.5855 6.61123C21.9852 7.08067 22.0551 7.7542 21.9652 8.36549L21.0159 15.06C20.8361 16.3469 19.7569 17.2949 18.4879 17.2949H7.58639C6.25742 17.2949 5.15828 16.255 5.04837 14.908L4.12908 3.7834L2.62026 3.51807C2.22057 3.44664 1.94079 3.04864 2.01073 2.64043C2.08068 2.22305 2.47038 1.94649 2.88006 2.00874L5.2632 2.3751C5.60293 2.43735 5.85274 2.72207 5.88272 3.06905L6.07257 5.35499C6.10254 5.68257 6.36234 5.92749 6.68209 5.92749H20.1766ZM7.42631 18.9079C6.58697 18.9079 5.9075 19.6018 5.9075 20.459C5.9075 21.3061 6.58697 22 7.42631 22C8.25567 22 8.93514 21.3061 8.93514 20.459C8.93514 19.6018 8.25567 18.9079 7.42631 18.9079ZM18.6676 18.9079C17.8282 18.9079 17.1487 19.6018 17.1487 20.459C17.1487 21.3061 17.8282 22 18.6676 22C19.4969 22 20.1764 21.3061 20.1764 20.459C20.1764 19.6018 19.4969 18.9079 18.6676 18.9079Z"
+                  fill="currentColor"></path>
+              </svg>
+            </div>
+            <div class="text-end">
+              <small class="text-muted">Mis Ventas</small>
+              <h2 class="counter mb-0">{{ nro_ventas_usuario }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Productos Vendidos -->
+    <div class="col-lg-3 col-md-6">
+      <div class="card metric-card" data-aos="fade-up" data-aos-delay="300">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="bg-info text-white rounded p-3">
+              <svg class="icon-25" width="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                  d="M12.5495 13.73H14.2624C14.6683 13.73 15.005 13.4 15.005 12.99C15.005 12.57 14.6683 12.24 14.2624 12.24H12.5495V10.51C12.5495 10.1 12.2228 9.77 11.8168 9.77C11.4109 9.77 11.0743 10.1 11.0743 10.51V12.24H9.37129C8.96535 12.24 8.62871 12.57 8.62871 12.99C8.62871 13.4 8.96535 13.73 9.37129 13.73H11.0743V15.46C11.0743 15.87 11.4109 16.2 11.8168 16.2C12.2228 16.2 12.5495 15.87 12.5495 15.46V13.73ZM19.3381 9.02561C19.5708 9.02292 19.8242 9.02 20.0545 9.02C20.302 9.02 20.5 9.22 20.5 9.47V17.51C20.5 19.99 18.5099 22 16.0446 22H8.17327C5.59901 22 3.5 19.89 3.5 17.29V6.51C3.5 4.03 5.5 2 7.96535 2H13.2525C13.5099 2 13.7079 2.21 13.7079 2.46V5.68C13.7079 7.51 15.203 9.01 17.0149 9.02C17.4381 9.02 17.8112 9.02316 18.1377 9.02593C18.3917 9.02809 18.6175 9.03 18.8168 9.03C18.9578 9.03 19.1405 9.02789 19.3381 9.02561ZM19.61 7.5662C18.7961 7.5692 17.8367 7.5662 17.1466 7.5592C16.0516 7.5592 15.1496 6.6482 15.1496 5.5422V2.9062C15.1496 2.4752 15.6674 2.2612 15.9635 2.5722C16.4995 3.1351 17.2361 3.90891 17.9693 4.67913C18.7002 5.44689 19.4277 6.21108 19.9496 6.7592C20.2387 7.0622 20.0268 7.5652 19.61 7.5662Z"
+                  fill="currentColor"></path>
+              </svg>
+            </div>
+            <div class="text-end">
+              <small class="text-muted">Productos Vendidos</small>
+              <h2 class="counter mb-0">{{ productos_vendidos_usuario }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Número de Devoluciones -->
+    <div class="col-lg-3 col-md-6">
+      <div class="card metric-card" data-aos="fade-up" data-aos-delay="800">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="bg-danger text-white rounded p-3">
+              <svg class="icon-25" width="25" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <div class="text-end">
+              <small class="text-muted">Mis Devoluciones</small>
+              <h2 class="mb-0">{{ nro_devoluciones_usuario }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Productos Devueltos -->
+    <div class="col-lg-3 col-md-6">
+      <div class="card metric-card" data-aos="fade-up" data-aos-delay="900">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="bg-warning text-white rounded p-3">
+              <svg class="icon-25" width="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.62871 12.99C8.62871 13.4 8.96535 13.73 9.37129 13.73H14.2624C14.6683 13.73 15.005 13.4 15.005 12.99C15.005 12.57 14.6683 12.24 14.2624 12.24H9.37129C8.96535 12.24 8.62871 12.57 8.62871 12.99ZM19.3381 9.02561C19.5708 9.02292 19.8242 9.02 20.0545 9.02C20.302 9.02 20.5 9.22 20.5 9.47V17.51C20.5 19.99 18.5099 22 16.0446 22H8.17327C5.59901 22 3.5 19.89 3.5 17.29V6.51C3.5 4.03 5.5 2 7.96535 2H13.2525C13.5099 2 13.7079 2.21 13.7079 2.46V5.68C13.7079 7.51 15.203 9.01 17.0149 9.02C17.4381 9.02 17.8112 9.02316 18.1377 9.02593C18.3917 9.02809 18.6175 9.03 18.8168 9.03C18.9578 9.03 19.1405 9.02789 19.3381 9.02561ZM19.61 7.5662C18.7961 7.5692 17.8367 7.5662 17.1466 7.5592C16.0516 7.5592 15.1496 6.6482 15.1496 5.5422V2.9062C15.1496 2.4752 15.6674 2.2612 15.9635 2.5722C16.4995 3.1351 17.2361 3.90891 17.9693 4.67913C18.7002 5.44689 19.4277 6.21108 19.9496 6.7592C20.2387 7.0622 20.0268 7.5652 19.61 7.5662Z" fill="currentColor"></path>                            </svg>                        
+
+            </div>
+            <div class="text-end">
+              <small class="text-muted">Productos Devueltos</small>
+              <h2 class="mb-0">{{ productos_devueltos_usuario }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="row">
+    <!-- Gráficos y Tablas -->
+    <div class="col-lg-12 col-md-12">
+      <div class="card" data-aos="fade-up" data-aos-delay="800">
+        <div class="card-body">
+          <!-- Conmutador de Paneles -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-2">
+                <div id="dashboard-tables-switch" class="btn-group flex-wrap justify-content-center" role="group"
+                  aria-label="Switch paneles dashboard">
+                  <button type="button" class="btn btn-outline-primary border-2 active fw-semibold"
+                    data-target="#panel-grafico-ventas">
+                    <span class="d-none d-sm-inline">Gráfico de Ventas</span>
+                    <span class="d-sm-none">Ventas</span>
+                  </button>
+                  <button type="button" class="btn btn-outline-primary border-2 fw-semibold"
+                    data-target="#panel-top-productos">
+                    <span class="d-none d-sm-inline">Top Productos</span>
+                    <span class="d-sm-none">Productos</span>
+                  </button>
+                  <button type="button" class="btn btn-outline-primary border-2 fw-semibold"
+                    data-target="#panel-ventas-marca">
+                    <span class="d-none d-sm-inline">Ventas por Marca</span>
+                    <span class="d-sm-none">Marcas</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel: Gráfico de Ventas -->
+          <div id="panel-grafico-ventas" class="mb-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">Mis Ventas por Día (Últimos 7 días)</h5>
+              </div>
+              <div class="card-body">
+                <div style="position: relative; height: 300px; width: 100%;">
+                  <canvas id="ventasChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel: Top Productos -->
+          <div id="panel-top-productos" class="mb-4" style="display: none">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">Mis Productos Más Vendidos</h5>
+              </div>
+              <div class="card-body">
+                {% if top_productos_usuario %}
+                <div class="table-responsive">
+                  <table class="table table-hover mb-0">
+                    <thead>
+                      <tr>
+                        <th>Producto</th>
+                        <th>Marca</th>
+                        <th class="text-center">Cantidad Vendida</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for producto in top_productos_usuario %}
+                      <tr>
+                        <td><strong>{{ producto.producto__descripcion }}</strong></td>
+                        <td>
+                          {{ producto.producto__marca__nombre|default:"Sin marca" }}
+                        </td>
+                        <td class="text-center">
+                          <span class="badge bg-primary">{{ producto.cantidad_vendida }}</span>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">
+                  No hay datos de productos vendidos en este período.
+                </p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel: Ventas por Marca -->
+          <div id="panel-ventas-marca" class="mb-4" style="display: none">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">Mis Ventas por Marca</h5>
+              </div>
+              <div class="card-body">
+                <div style="position: relative; height: 300px; width: 100%;">
+                  <canvas id="marcasChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desglose de Comisiones -->
+  <div class="row">
+    <!-- Ingresos del Usuario -->
+    <div class="col-lg-3 col-md-6">
+      <div class="card metric-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="bg-success text-white rounded p-3">
+              <svg class="icon-25" width="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M17.1801 4.41C17.1801 3.08 18.2601 2 19.5901 2C20.9201 2 22.0001 3.08 22.0001 4.41C22.0001 5.74 20.9201 6.82 19.5901 6.82C18.2601 6.82 17.1801 5.74 17.1801 4.41ZM13.33 14.7593L16.22 11.0303L16.18 11.0503C16.34 10.8303 16.37 10.5503 16.26 10.3003C16.151 10.0503 15.91 9.8803 15.651 9.8603C15.38 9.8303 15.111 9.9503 14.95 10.1703L12.531 13.3003L9.76 11.1203C9.59 10.9903 9.39 10.9393 9.19 10.9603C8.991 10.9903 8.811 11.0993 8.69 11.2593L5.731 15.1103L5.67 15.2003C5.5 15.5193 5.58 15.9293 5.88 16.1503C6.02 16.2403 6.17 16.3003 6.34 16.3003C6.571 16.3103 6.79 16.1893 6.93 16.0003L9.44 12.7693L12.29 14.9103L12.38 14.9693C12.7 15.1393 13.1 15.0603 13.33 14.7593ZM15.45 3.7803C15.41 4.0303 15.39 4.2803 15.39 4.5303C15.39 6.7803 17.21 8.5993 19.45 8.5993C19.7 8.5993 19.94 8.5703 20.19 8.5303V16.5993C20.19 19.9903 18.19 22.0003 14.79 22.0003H7.401C4 22.0003 2 19.9903 2 16.5993V9.2003C2 5.8003 4 3.7803 7.401 3.7803H15.45Z" fill="currentColor"></path>
+            </svg>
+            </div>
+            <div class="text-end">
+              <small class="text-muted">Generado en Ventas</small>
+              <h2 class="counter mb-0">
+                ${{ total_ingresos_usuario|floatformat:2 }}
+              </h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comisiones por Pagar -->
+    <div class="col-lg-3 col-md-6">
+      <div class="card metric-card" data-aos="fade-up" data-aos-delay="800">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="bg-warning text-white rounded p-3">
+              <svg class="icon-20" xmlns="http://www.w3.org/2000/svg" width="20px" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <div class="text-end">
+              <small class="text-muted">Comisiones por Pagar</small>
+              <h2 class="mb-0">${{ comisiones_por_pagar|floatformat:2 }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comisiones Pagadas -->
+    <div class="col-lg-3 col-md-6">
+      <div class="card metric-card" data-aos="fade-up" data-aos-delay="900">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="bg-success text-white rounded p-3">
+              <svg class="icon-20" xmlns="http://www.w3.org/2000/svg" width="20px" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <div class="text-end">
+              <small class="text-muted">Comisiones Pagadas</small>
+              <h2 class="mb-0">${{ comisiones_pagadas|floatformat:2 }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comisiones Denegadas -->
+    <div class="col-lg-3 col-md-6">
+      <div class="card metric-card" data-aos="fade-up" data-aos-delay="1000">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="bg-danger text-white rounded p-3">
+              <svg class="icon-20" xmlns="http://www.w3.org/2000/svg" width="20px" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <div class="text-end">
+              <small class="text-muted">Comisiones Denegadas</small>
+              <h2 class="mb-0">${{ comisiones_denegadas|floatformat:2 }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %} {% block pagina_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      // Alternancia de paneles
+      const switchGroup = document.getElementById('dashboard-tables-switch');
+      const switchButtons = switchGroup ? switchGroup.querySelectorAll('button[data-target]') : [];
+      const panels = [
+        document.querySelector('#panel-grafico-ventas'),
+        document.querySelector('#panel-top-productos'),
+        document.querySelector('#panel-ventas-marca'),
+      ].filter(Boolean);
+
+      function showPanel(targetSelector) {
+        if (!targetSelector) return;
+        panels.forEach(panel => {
+          if (!panel) return;
+          panel.style.display = (panel.matches(targetSelector)) ? '' : 'none';
+        });
+        switchButtons.forEach(btn => {
+          const isActive = (btn.dataset.target === targetSelector);
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+      }
+
+      if (switchGroup) {
+        switchGroup.addEventListener('click', function (event) {
+          const btn = event.target.closest('button[data-target]');
+          if (!btn || !switchGroup.contains(btn)) return;
+          event.preventDefault();
+          showPanel(btn.dataset.target);
+        }, true);
+      }
+
+      // Inicializar estados
+      if (panels.length > 0) {
+        switchButtons.forEach(btn => {
+          const isActive = btn.classList.contains('active');
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+        showPanel('#panel-grafico-ventas');
+      }
+
+      // Gráfico de ventas por día
+      const ventasPorDia = {{ ventas_por_dia_usuario| safe }};
+  if (ventasPorDia && ventasPorDia.length > 0) {
+    const ctx = document.getElementById('ventasChart');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ventasPorDia.map(item => item.fecha).reverse(),
+          datasets: [{
+            label: 'Ventas por Día',
+            data: ventasPorDia.map(item => item.ventas).reverse(),
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.1,
+            fill: true,
+            pointBackgroundColor: 'rgb(75, 192, 192)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          plugins: {
+            title: {
+              display: false
+            },
+            legend: {
+              display: true,
+              position: 'top'
+            }
+          },
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Días'
+              }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+                precision: 0
+              },
+              title: {
+                display: true,
+                text: 'Número de Ventas'
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // Gráfico de ventas por marca
+  const ventasPorMarca = {{ ventas_por_marca_usuario| safe }};
+  if (ventasPorMarca && ventasPorMarca.length > 0) {
+    const ctxMarcas = document.getElementById('marcasChart');
+    if (ctxMarcas) {
+      new Chart(ctxMarcas, {
+        type: 'doughnut',
+        data: {
+          labels: ventasPorMarca.map(item => item.producto__marca__nombre || 'Sin marca'),
+          datasets: [{
+            data: ventasPorMarca.map(item => item.cantidad),
+            backgroundColor: [
+              '#FF6384',
+              '#36A2EB',
+              '#FFCE56',
+              '#4BC0C0',
+              '#9966FF',
+              '#FF9F40',
+              '#FF6384',
+              '#C9CBCF'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: false
+            },
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((context.parsed / total) * 100).toFixed(1);
+                  return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // Animaciones AOS
+  if (typeof AOS !== 'undefined') {
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: true
+    });
+  }
+
+      } catch (err) {
+    console.error('Error inicializando dashboard:', err);
+  }
+});
+</script>
+{% endblock %}

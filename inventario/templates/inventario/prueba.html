@@ -1,0 +1,21 @@
+{% extends 'inventario/base.html' %} {% load static %} {% block title %}prueba -
+In Balance{% endblock %} {% block header_title %}prueba{% endblock %} {% block
+content %}
+<div class="alert alert-left alert-success alert-dismissible fade show mb-3" role="alert">
+<span> This is a success alert—check it out!</span>
+<button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<div class="toast fade show align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+    <div class="toast-body">
+        Hello, world! This is a toast messageasadsadasddasdsadasdsa
+        fdffffffffffffffffffffffffffffff ffffffffffffffffffffffffffffffff.
+    </div>
+    <img src="{% static 'assets/images/logo sin fondo1.svg' %}" style="width:100px;height:100%" alt="fondo">
+    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+</div>
+
+<img src="{% static 'assets/images/svg/alerta.svg' %}" stroke="#8A92A6" stroke-width="2" stroke-linecap="round"
+stroke-linejoin="round" />
+{% endblock %}

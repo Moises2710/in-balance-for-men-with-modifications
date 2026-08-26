@@ -1,0 +1,24 @@
+<!-- login.html -->
+{% extends 'inventario/base_login.html' %}
+{% load static %}
+
+{% block title %}Login - In Balance{% endblock %}
+
+{% block content %}
+<!-- El formulario se maneja en el template base -->
+{% endblock %}
+
+{% block extra_content %}
+<!-- Pasar el formulario al template base -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Asegurar que el formulario esté disponible en el template base
+    if (typeof window.formData === 'undefined') {
+        window.formData = {
+            captcha: document.querySelector('.captcha'),
+            errors: {{ form.errors|safe }}
+        };
+    }
+});
+</script>
+{% endblock %}

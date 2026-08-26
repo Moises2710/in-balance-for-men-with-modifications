@@ -1,0 +1,410 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+{% block title %}Lista de Devoluciones{% endblock %}
+
+{% block custom_css %}
+<link href="{% static 'assets/css/nuevos/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/css/nuevos/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block pagina_css %}
+{% endblock %}
+
+{% block content %}
+<div class="col-sm-12">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between flex-wrap">
+            <div class="header-title">
+                <h4 class="card-title">Lista de Devoluciones</h4>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-icon" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#filtrosOffcanvas">
+                    <i class="btn-inner">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path d="M10.33 16.5928H4.0293" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M13.1406 6.90042H19.4413" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M8.72629 6.84625C8.72629 5.5506 7.66813 4.5 6.36314 4.5C5.05816 4.5 4 5.5506 4 6.84625C4 8.14191 5.05816 9.19251 6.36314 9.19251C7.66813 9.19251 8.72629 8.14191 8.72629 6.84625Z"
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M20.0002 16.5538C20.0002 15.2581 18.9429 14.2075 17.6379 14.2075C16.3321 14.2075 15.2739 15.2581 15.2739 16.5538C15.2739 17.8494 16.3321 18.9 17.6379 18.9C18.9429 18.9 20.0002 17.8494 20.0002 16.5538Z"
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg>
+                    </i>
+                    Filtros
+                </button>
+                <a href="{% url 'venta_list' %}" class="btn btn-primary btn-icon">
+                    <i class="btn-inner">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                            </path>
+                        </svg>
+                    </i>
+                    <span>Ver Ventas</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Offcanvas de Filtros -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="filtrosOffcanvas"
+            aria-labelledby="filtrosOffcanvasLabel">
+            <div class="offcanvas-header border-bottom">
+                <h5 class="offcanvas-title fw-bold" id="filtrosOffcanvasLabel">Filtros Avanzados</h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                    aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-0">
+                <div class="p-3">
+                    <!-- Filtros por Columnas -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-body-tertiary border-0 py-3">
+                            <h6 class="mb-0 fw-bold">Filtros por Columnas</h6>
+                        </div>
+                        <div class="card-body">
+                            <!-- Filtro para ID -->
+                            <div class="mb-3">
+                                <label for="filter-id" class="form-label fw-medium">ID de Devolución</label>
+                                <input type="number" class="form-control" id="filter-id" placeholder="Buscar por ID"
+                                    min="1">
+                            </div>
+
+                            <!-- Filtro para Fecha -->
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Fecha</label>
+                                <div class="row g-2">
+                                    <div class="col">
+                                        <div class="input-group">
+                                            <span class="input-group-text">Desde</span>
+                                            <input type="date" class="form-control" id="filter-fecha-desde"
+                                                aria-describedby="Desde">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="input-group">
+                                            <span class="input-group-text">Hasta</span>
+                                            <input type="date" class="form-control" id="filter-fecha-hasta"
+                                                aria-describedby="Hasta">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Filtro para Cliente -->
+                            <div class="mb-3">
+                                <label for="filter-cliente" class="form-label fw-medium">Cliente</label>
+                                <input type="text" class="form-control" id="filter-cliente"
+                                    placeholder="Buscar por cliente">
+                            </div>
+
+                            <!-- Filtro para Venta -->
+                            <div class="mb-3">
+                                <label for="filter-venta" class="form-label fw-medium">ID de Venta</label>
+                                <input type="number" class="form-control" id="filter-venta"
+                                    placeholder="Buscar por ID de venta" min="1">
+                            </div>
+
+                            <!-- Filtro para Monto -->
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Monto</label>
+                                <div class="row g-2">
+                                    <div class="col">
+                                        <div class="input-group">
+                                            <span class="input-group-text">Min</span>
+                                            <input type="number" class="form-control" id="filter-monto-min" step="0.01"
+                                                min="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="input-group">
+                                            <span class="input-group-text">Max</span>
+                                            <input type="number" class="form-control" id="filter-monto-max" step="0.01"
+                                                min="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="button" class="btn btn-primary flex-fill" id="btn-aplicar-filtros">
+                            <i class="btn-inner">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </i>
+                            Aplicar Filtros
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary flex-fill" id="btn-limpiar-filtros">
+                            <i class="btn-inner">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </i>
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Devoluciones -->
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="my-table" class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Venta</th>
+                            <th>Total Devolución</th>
+                            <th>Cliente</th>
+                            <th>Total Productos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los datos se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block custom_js %}
+<script src="{% static 'assets/js/plugins/select2.min.js' %}"></script>
+{% endblock %}
+
+{% block pagina_js %}
+<script>
+    // Configurar CSRF token para AJAX
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    });
+
+    $(document).ready(function () {
+        // Objeto para almacenar los filtros actuales
+        let filters = {
+            idFilter: '',
+            fechaDesde: '',
+            fechaHasta: '',
+            clienteFilter: '',
+            ventaFilter: '',
+            montoMin: null,
+            montoMax: null
+        };
+
+        // Inicializar DataTable
+        var table = $('#my-table').DataTable({
+            "ajax": {
+                "url": "{% url 'devolucion_ajax' %}",
+                "type": "GET",
+                "data": function (d) {
+                    // Agregar todos los filtros al request
+                    d.id_filter = $('#filter-id').val() || '';
+                    d.fecha_desde = $('#filter-fecha-desde').val() || '';
+                    d.fecha_hasta = $('#filter-fecha-hasta').val() || '';
+                    d.cliente_filter = $('#filter-cliente').val() || '';
+                    d.venta_filter = $('#filter-venta').val() || '';
+                    d.monto_min = $('#filter-monto-min').val() || '';
+                    d.monto_max = $('#filter-monto-max').val() || '';
+                },
+                "error": function (xhr, error, thrown) {
+                    console.error('Error en AJAX:', error, thrown);
+                    // Mostrar mensaje de error al usuario
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        alert('Error al cargar los datos: ' + xhr.responseJSON.error);
+                    } else {
+                        alert('Error al cargar los datos. Por favor, intente nuevamente.');
+                    }
+                }
+            },
+            "processing": true,
+            "serverSide": true,
+            "responsive": true,
+            "autoWidth": false,
+            "dom": '<"row align-items-center"<"col-md-6" l><"col-md-6" f>><"table-responsive my-3" rt><"row align-items-center" <"col-md-6" i><"col-md-6" p>><"clear">',
+            "language": {
+                "url": "{% static 'assets/js/nuevos/es-ES.json' %}"
+            },
+            "columns": [
+                { "data": "id" },
+                { "data": "fecha" },
+                {
+                    "data": "venta_id",
+                    "render": function (data) {
+                        return `#${data}`;
+                    }
+                },
+                {
+                    "data": "total",
+                    "className": "text-end",
+                    "render": function (data) {
+                        return `$${parseFloat(data).toFixed(2)}`;
+                    }
+                },
+                { "data": "cliente" },
+                {
+                    "data": "total_productos",
+                    "className": "text-center"
+                },
+                {
+                    "data": "id",
+                    "orderable": false,
+                    "render": function (data, type, row) {
+                        return `
+                    <div class="flex align-items-center list-user-action">
+                        <a type="button" class="btn btn-sm btn-info" href="/devolucion/detalle/${data}/" aria-label="ver detalles" title="Ver detalles">
+                            Ver detalles
+                        </a>
+                    </div>
+                    `;
+                    }
+                }
+            ],
+            "drawCallback": function (settings) {
+                // Reinicializar tooltips después de cada redibujado de la tabla
+                $('[data-bs-toggle="tooltip"]').tooltip();
+            }
+        });
+
+        // Función para aplicar filtros
+        function aplicarFiltros() {
+            // Validar IDs
+            const idFilter = $('#filter-id').val();
+            const ventaFilter = $('#filter-venta').val();
+
+            if (idFilter && (isNaN(parseInt(idFilter)) || parseInt(idFilter) < 1)) {
+                alert('El ID de devolución debe ser un número entero mayor a 0');
+                return;
+            }
+
+            if (ventaFilter && (isNaN(parseInt(ventaFilter)) || parseInt(ventaFilter) < 1)) {
+                alert('El ID de venta debe ser un número entero mayor a 0');
+                return;
+            }
+
+            // Validar fechas
+            const fechaDesde = $('#filter-fecha-desde').val();
+            const fechaHasta = $('#filter-fecha-hasta').val();
+
+            if (fechaDesde && fechaHasta && fechaDesde > fechaHasta) {
+                alert('La fecha "Desde" no puede ser mayor que la fecha "Hasta"');
+                return;
+            }
+
+            // Validar montos
+            const montoMin = $('#filter-monto-min').val();
+            const montoMax = $('#filter-monto-max').val();
+
+            if (montoMin && montoMax && parseFloat(montoMin) > parseFloat(montoMax)) {
+                alert('El monto mínimo no puede ser mayor que el monto máximo');
+                return;
+            }
+
+            // Validar que los montos sean números válidos
+            if (montoMin && (isNaN(parseFloat(montoMin)) || parseFloat(montoMin) < 0)) {
+                alert('El monto mínimo debe ser un número válido mayor o igual a 0');
+                return;
+            }
+
+            if (montoMax && (isNaN(parseFloat(montoMax)) || parseFloat(montoMax) < 0)) {
+                alert('El monto máximo debe ser un número válido mayor o igual a 0');
+                return;
+            }
+
+            // Actualizar objeto filters con los valores actuales
+            filters = {
+                idFilter: $('#filter-id').val() || '',
+                fechaDesde: fechaDesde || '',
+                fechaHasta: fechaHasta || '',
+                clienteFilter: $('#filter-cliente').val() || '',
+                ventaFilter: $('#filter-venta').val() || '',
+                montoMin: montoMin || '',
+                montoMax: montoMax || ''
+            };
+
+            // Recargar la tabla con los nuevos filtros
+            table.ajax.reload(null, false); // false para mantener la página actual
+        }
+
+        // Evento para el botón aplicar filtros
+        $('#btn-aplicar-filtros').on('click', aplicarFiltros);
+
+        // Evento para limpiar filtros
+        $('#btn-limpiar-filtros').on('click', function () {
+            // Resetear controles
+            $('#filter-id').val('');
+            $('#filter-fecha-desde').val('');
+            $('#filter-fecha-hasta').val('');
+            $('#filter-cliente').val('');
+            $('#filter-venta').val('');
+            $('#filter-monto-min').val('');
+            $('#filter-monto-max').val('');
+
+            // Resetear objeto filters
+            filters = {
+                idFilter: '',
+                fechaDesde: '',
+                fechaHasta: '',
+                clienteFilter: '',
+                ventaFilter: '',
+                montoMin: '',
+                montoMax: ''
+            };
+
+            // Recargar tabla sin filtros
+            table.ajax.reload(null, false);
+        });
+
+        // Permitir aplicar filtros con Enter
+        $('.form-control').keypress(function (e) {
+            if (e.which === 13) {
+                aplicarFiltros();
+
+                // Cerrar el offcanvas después de aplicar
+                var offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('filtrosOffcanvas'));
+                offcanvas.hide();
+            }
+        });
+
+        // Inicializar tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}
+</rewritten_file>

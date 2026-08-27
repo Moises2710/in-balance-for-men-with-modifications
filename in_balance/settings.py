@@ -16,6 +16,19 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 """
 
+import socket
+import os
+
+# Forzar IPv4 para Supabase (solución para el error Network is unreachable)
+if os.environ.get('PRODUCTION', 'False').lower() == 'true':
+    original_getaddrinfo = socket.getaddrinfo
+    def ipv4_only_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+        if host and 'supabase.co' in str(host):
+            family = socket.AF_INET  # Forzar IPv4
+        return original_getaddrinfo(host, port, family, type, proto, flags)
+    socket.getaddrinfo = ipv4_only_getaddrinfo
+    print("🔧 IPv4 forzado para Supabase")
+
 import os, json, tempfile
 from pathlib import Path
 import dj_database_url

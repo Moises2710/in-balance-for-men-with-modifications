@@ -44,14 +44,16 @@ class Command(BaseCommand):
         self.stdout.write('Creando superusuario...')
         
         # Verificar si ya existe el superusuario
-        if User.objects.filter(username='').exists():
-            self.stdout.write(' ')
+        if User.objects.filter(username='admin').exists():
+            self.stdout.write('El superusuario ya existe. No se creará uno nuevo.')
             return
         
         # Crear superusuario
         try:
             superuser = User.objects.create_superuser(
-                
+                username='admin',
+                email='mscoronado630@example.com',
+                password='+Password20022710'
             )
             
             # Asignar al grupo Administrador
@@ -59,7 +61,7 @@ class Command(BaseCommand):
             superuser.groups.add(admin_group)
             
             self.stdout.write(
-                self.style.SUCCESS('  ')
+                self.style.SUCCESS('  - Superusuario creado exitosamente')
             )
             
         except Exception as e:

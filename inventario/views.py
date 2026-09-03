@@ -726,7 +726,7 @@ class CustomLoginView(LoginView):
         if 'form' not in context:
             context['form'] = self.get_form()
         # Agregar la clave de reCAPTCHA v3 al contexto
-        # context[''] = settings.clave_de_entorno
+        context[''] = settings.clave_de_entorno
         return context
 
     def get_success_url(self):
@@ -745,7 +745,7 @@ class CustomLoginView(LoginView):
     def form_invalid(self, form):
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             print(f"DEBUG VIEW: Formulario inválido - Errores: {form.errors}")
-            
+
             errors = {}
             if '__all__' in form.errors:
                 errors['__all__'] = form.errors['__all__'][0]

@@ -726,7 +726,8 @@ class CustomLoginView(LoginView):
         if 'form' not in context:
             context['form'] = self.get_form()
         # Agregar la clave de reCAPTCHA v3 al contexto
-        context[''] = settings.clave_de_entorno
+        # context[''] = settings.clave_de_entorno
+        context['recaptcha_site_key'] = settings.RECAPTCHA_V3_SITE_KEY
         return context
 
     def get_success_url(self):

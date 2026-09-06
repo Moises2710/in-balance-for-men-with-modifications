@@ -13,15 +13,21 @@ class RecaptchaV3Service:
     """Servicio para validar tokens de reCAPTCHA v3 Enterprise"""
     
     def __init__(self):
-        self.project_id = settings.calve_entorno_recaptcha_v3_CLOUD_PROJECT_ID
-        self.site_key = settings.clave_entorno_recaptcha_v3
-        self.secret_key = settings.clave_entorno_recaptcha_v3
-        self.score_threshold = settings.clave_entorno_recapCHA_V3_SCORE_THRESHOLD
+        # self.project_id = settings.calve_entorno_recaptcha_v3_CLOUD_PROJECT_ID
+        # self.site_key = settings.clave_entorno_recaptcha_v3
+        # self.secret_key = settings.clave_entorno_recaptcha_v3
+        # self.score_threshold = settings.clave_entorno_recapCHA_V3_SCORE_THRESHOLD
+        # 👇 CORREGIDO: Usar los nombres correctos de las variables
+        self.project_id = os.environ.get('GOOGLE_CLOUD_PROJECT_ID', '')  # ⬅️ El ID de tu proyecto en Google Cloud
+        self.site_key = settings.RECAPTCHA_V3_SITE_KEY  # ⬅️ Tu Site Key
+        self.secret_key = settings.RECAPTCHA_V3_SECRET_KEY  # ⬅️ Tu Secret Key
+        self.score_threshold = getattr(settings, 'RECAPTCHA_V3_SCORE_THRESHOLD', 0.5)
         
         # Debug: Imprimir configuración
         print(f"DEBUG RECAPTCHA SERVICE:")
         print(f"  Project ID: {self.project_id}")
-        print(f"  Site Key: {self.site_key}")
+        # print(f"  Site Key: {self.site_key}")
+        print(f"  Site Key: {self.site_key[:20]}..." if self.site_key else "  Site Key: None")
         print(f"  Secret Key: {'*' * 20 if self.secret_key else 'None'}")
         print(f"  Score Threshold: {self.score_threshold}")
         print(f"  Is Configured: {self.is_configured()}")
@@ -42,7 +48,8 @@ class RecaptchaV3Service:
                 'reasons': list (opcional)
             }
         """
-        if not self.project_id or not self.secret_key:
+        # if not self.project_id or not self.secret_key:
+        if not self.project_id or not self.secret_key or not self.site_key:
             logger.warning("reCAPTCHA v3 no configurado correctamente")
             return {
                 'valid': False,

@@ -415,3 +415,9 @@ def __getattr__(name):
     if name in ['clave_de_entorno', 'CLAVE_DE_ENTORNO']:
         return 'desarrollo_local'
     raise AttributeError(DeltaNameError)
+
+# DEBUG para verificar que las variables de reCAPTCHA se cargan
+print("🔍 VERIFICANDO VARIABLES DE reCAPTCHA:")
+print(f"  RECAPTCHA_V3_SITE_KEY: {RECAPTCHA_V3_SITE_KEY[:20] if RECAPTCHA_V3_SITE_KEY else 'VACÍA'}...")
+print(f"  RECAPTCHA_V3_SECRET_KEY: {'*' * 20 if RECAPTCHA_V3_SECRET_KEY else 'VACÍA'}")
+print(f"  GOOGLE_CLOUD_PROJECT_ID: {GOOGLE_CLOUD_PROJECT_ID if GOOGLE_CLOUD_PROJECT_ID else 'VACÍA'}")

@@ -161,8 +161,12 @@
     <script src="{% static 'assets/js/core/libs.min.js' %}"></script>
     <script src="{% static 'assets/js/hope-ui.js' %}" defer></script>
     <!-- Pasar la clave de reCAPTCHA v3 al JavaScript -->
-    <script>
+    <!-- <script>
       window.RECAPTCHA_V3_SITE_KEY = '{{ clave_entorno_recaptcha_v3 }}';
+    </script> -->
+    <script>
+        window.RECAPTCHA_V3_SITE_KEY = "{{ RECAPTCHA_V3_SITE_KEY }}";
+        console.log('Site Key cargada:', window.RECAPTCHA_V3_SITE_KEY);
     </script>
     <script src="{% static 'custom/js/login.js' %}"></script>
 
@@ -179,7 +183,8 @@
     <!-- Script de diagnóstico y configuración para reCAPTCHA v3 -->
     <script>
       window.addEventListener('load', function() {
-        console.log('reCAPTCHA v3 Site Key:', '{{ clave_entorno_recaptcha_v3 }}');
+        // console.log('reCAPTCHA v3 Site Key:', '{{ clave_entorno_recaptcha_v3 }}');
+        console.log('reCAPTCHA v3 Site Key:', '{{ RECAPTCHA_V3_SITE_KEY }}');
         
         // Función para verificar reCAPTCHA
         function checkRecaptcha() {
